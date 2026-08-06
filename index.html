@@ -13,15 +13,27 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+  <!-- Hosted Eurostile CDN Web Font -->
+  <link rel="stylesheet" href="https://use.typekit.net/qvj2vjt.css"> 
+
   <style>
-    /* Strict Eurostile Font Declaration */
+    /* Direct Web-Font Declaration for Eurostile */
     @font-face {
       font-family: 'Eurostile';
-      src: local('Eurostile'), local('Eurostile-Regular'), local('Eurostile Standard'), local('Eurostile Extended'), local('Microgramma');
+      src: url('https://fonts.cdnfonts.com/s/14101/EurostileRegular.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'Eurostile';
+      src: url('https://fonts.cdnfonts.com/s/14101/EurostileBold.woff') format('woff');
+      font-weight: bold;
+      font-style: normal;
     }
 
     body, button, input, select, textarea, span, div, p, header, footer { 
-      font-family: 'Eurostile', 'Microgramma', 'Arial Black', sans-serif !important; 
+      font-family: 'Eurostile', 'Eurostile Extended', 'Microgramma', sans-serif !important; 
     }
 
     /* Vertical 9-Stitch Needling Overlay */
