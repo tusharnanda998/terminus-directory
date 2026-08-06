@@ -174,14 +174,12 @@
     </div>
   </header>
 
-  <!-- INDEX SUB-NAV (Positioned Under INDEX on the Right with | Separators) -->
+  <!-- INDEX SUB-NAV (Toggle Filters for Images and Text) -->
   <div id="index-subnav" class="w-full relative z-20 mb-8 flex justify-end">
     <div class="flex items-center space-x-2 text-[9px] tracking-widest uppercase">
-      <button id="subtab-all" onclick="setIndexFilter('all')" class="font-bold text-black cursor-pointer">ALL</button>
+      <button id="subtab-images" onclick="toggleIndexFilter('images')" class="font-bold text-black cursor-pointer transition-colors">IMAGES</button>
       <span class="text-neutral-300">|</span>
-      <button id="subtab-images" onclick="setIndexFilter('images')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer">IMAGES</button>
-      <span class="text-neutral-300">|</span>
-      <button id="subtab-text" onclick="setIndexFilter('text')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer">TEXT & LINKS</button>
+      <button id="subtab-text" onclick="toggleIndexFilter('text')" class="font-bold text-black cursor-pointer transition-colors">TEXT</button>
     </div>
   </div>
 
@@ -280,7 +278,11 @@
       // State Management
       let allDocs = [];
       let currentMainTab = "all"; // 'all' (Index), 'saved'
-      let indexFilter = "all";    // 'all', 'images', 'text'
+      
+      // Independent Multi-Select Filter State (Both true by default)
+      let filterShowImages = true;
+      let filterShowText = true;
+
       let savedIds = JSON.parse(localStorage.getItem("terminus_saved_cards") || "[]");
 
       function updateSavedBadge() {
@@ -466,19 +468,28 @@
         renderFeed();
       };
 
-      window.setIndexFilter = function(filter) {
-        indexFilter = filter;
-        const subAll = document.getElementById("subtab-all");
-        const subImages = document.getElementById("subtab-images");
-        const subText = document.getElementById("subtab-text");
+      // TOGGLE INDEPENDENT FILTER BUTTONS
+      window.toggleIndexFilter = function(type) {
+        if (type === 'images') {
+          filterShowImages = !filterShowImages;
+        } else if (type === 'text') {
+          filterShowText = !filterShowText;
+        }
 
-        subAll.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
-        subImages.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
-        subText.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
+        const btnImages = document.getElementById("subtab-images");
+        const btnText = document.getElementById("subtab-text");
 
-        if (filter === "all") subAll.className = "font-bold text-black cursor-pointer";
-        if (filter === "images") subImages.className = "font-bold text-black cursor-pointer";
-        if (filter === "text") subText.className = "font-bold text-black cursor-pointer";
+        if (filterShowImages) {
+          btnImages.className = "font-bold text-black cursor-pointer transition-colors";
+        } else {
+          btnImages.className = "font-weight-normal text-neutral-400 hover:text-black cursor-pointer transition-colors";
+        }
+
+        if (filterShowText) {
+          btnText.className = "font-bold text-black cursor-pointer transition-colors";
+        } else {
+          btnText.className = "font-weight-normal text-neutral-400 hover:text-black cursor-pointer transition-colors";
+        }
 
         renderFeed();
       };
@@ -569,7 +580,7 @@
         window.print();
       };
 
-      // RENDER FEED BASED ON ACTIVE TAB & SUB-NAV FILTER
+      // RENDER FEED BASED ON MULTI-SELECT FILTER STATE
       function renderFeed() {
         const feedContainer = document.getElementById("archive-feed");
         feedContainer.innerHTML = ""; 
@@ -578,14 +589,18 @@
 
         if (currentMainTab === "saved") {
           docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
-        } else {
-          // INDEX TAB FILTERS
-          if (indexFilter === "images") {
-            docsToRender = allDocs.filter(doc => !doc.data().type || doc.data().type === "image");
-          } else if (indexFilter === "text") {
-            docsToRender = allDocs.filter(doc => doc.data().type === "text" || doc.data().type === "link");
-          }
         }
+
+        // Apply multi-select filter conditions
+        docsToRender = docsToRender.filter(doc => {
+          const type = doc.data().type || "image";
+          const isImage = (type === "image");
+          const isTextOrLink = (type === "text" || type === "link");
+
+          if (isImage && filterShowImages) return true;
+          if (isTextOrLink && filterShowText) return true;
+          return false;
+        });
 
         if (docsToRender.length === 0) {
           feedContainer.innerHTML = `
@@ -656,13 +671,12 @@
 
           activeUploaderInitials = FOUNDER_KEYS[userInput];
 
-          // If user selected Text/Links filter or explicitly chooses to upload Text/Link
-          if (indexFilter === "text") {
+          // Determine upload type based on active filter toggles
+          if (filterShowText && !filterShowImages) {
             handleTextOrLinkUpload();
-          } else if (indexFilter === "images") {
+          } else if (filterShowImages && !filterShowText) {
             myWidget.open();
           } else {
-            // "ALL" Filter active: Prompt user which format they want to upload
             const choice = prompt("SELECT UPLOAD TYPE:\n1 = IMAGE\n2 = TEXT NOTE / LINK", "1");
             if (choice === "1") {
               myWidget.open();
