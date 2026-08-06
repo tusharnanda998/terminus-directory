@@ -13,23 +13,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-  <!-- Google Fonts Fallback for Eurostile Aesthetic -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
-
   <style>
-    /* Global Eurostile Font Setup */
-    @font-face {
-      font-family: 'Eurostile';
-      src: local('Eurostile'), local('Eurostile-Regular'), local('Eurostile Extended');
-    }
+    body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
 
-    body, button, input, select, textarea, span, div, p { 
-      font-family: 'Eurostile', 'Microgramma', 'Orbitron', -apple-system, BlinkMacSystemFont, sans-serif !important; 
-    }
-
-    /* Vertical 9-Stitch Needling Overlay */
+    /* Vertical 9-Stitch Needling Overlay (33px total bundle width) */
     .stitch-overlay-vertical {
       position: fixed;
       top: 0;
@@ -49,12 +36,12 @@
       opacity: 0.85;
     }
 
-    /* Edge-to-Edge Horizontal 9-Stitch Needling (33px height = exactly 9 lines) */
+    /* Edge-to-Edge Horizontal 9-Stitch Needling (33px total height = 9 lines) */
     .stitch-overlay-header-horizontal {
       position: absolute;
-      top: 0;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translate(-50%, -50%);
       width: 100vw;
       height: 33px;
       pointer-events: none;
@@ -75,13 +62,13 @@
   <!-- Continuous Vertical 9-Line Stitch Needling Overlay -->
   <div class="stitch-overlay-vertical"></div>
 
-  <!-- Header with Seamless Integrated Horizontal 9-Stitch Needling -->
-  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-sm mb-8 text-[11px] tracking-widest uppercase relative h-[33px] flex items-center">
+  <!-- Header with Integrated Edge-to-Edge Horizontal 9-Stitch Needling -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b border-neutral-200 py-4 mb-8 text-[11px] tracking-widest uppercase relative">
     
     <!-- Full-Width Horizontal 9-Stitch Background Overlay in Header -->
     <div class="stitch-overlay-header-horizontal"></div>
 
-    <div class="flex justify-between items-center w-full relative z-20">
+    <div class="flex justify-between items-center max-w-full relative z-20">
       <!-- Left Side: Upload Trigger -->
       <div>
         <button id="upload_widget" class="bg-black text-white px-3 py-1 text-[9px] hover:bg-neutral-800 transition-colors uppercase cursor-pointer">
@@ -102,7 +89,7 @@
     <!-- Dynamic slides load here automatically -->
   </main>
 
-  <footer class="mt-16 pt-6 border-t border-neutral-200 text-neutral-400 text-[10px] flex justify-between relative z-20">
+  <footer class="mt-16 pt-6 border-t border-neutral-200 text-neutral-400 text-[10px] flex justify-between font-mono relative z-20">
     <p>&copy; TERMINUS.DIRECTORY</p>
     <p>ALL RIGHTS RESERVED.</p>
   </footer>
@@ -121,7 +108,7 @@
     >
     <button 
       onclick="closeLightbox()" 
-      class="absolute top-6 right-6 text-neutral-500 hover:text-black text-[11px] uppercase tracking-widest"
+      class="absolute top-6 right-6 text-neutral-500 hover:text-black font-mono text-[11px] uppercase tracking-widest"
     >
       [ CLOSE ✕ ]
     </button>
@@ -167,7 +154,7 @@
         return `
           <article class="py-12 md:py-20 min-h-[85vh] flex flex-col justify-between">
             <!-- Top Bar -->
-            <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase">
+            <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase font-mono">
               <span>TERMINUS PROJECTS LLC ©</span>
               <span>${entryNum} / 999</span>
             </div>
@@ -183,7 +170,7 @@
             </div>
 
             <!-- Bottom Bar -->
-            <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase">
+            <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase font-mono">
               <!-- Bottom Left: Compact Action Icons -->
               <div class="flex items-center space-x-2.5">
                 ${docId ? `
@@ -303,7 +290,7 @@
         if (docsToRender.length === 0) {
           if (currentTab === "saved") {
             feedContainer.innerHTML = `
-              <div class="text-center py-24 text-[11px] text-neutral-400 uppercase tracking-widest">
+              <div class="text-center py-24 font-mono text-[11px] text-neutral-400 uppercase tracking-widest">
                 NO SAVED ENTRIES IN YOUR ARCHIVE.
               </div>
             `;
