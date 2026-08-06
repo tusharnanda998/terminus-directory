@@ -520,7 +520,8 @@
 
           let bodyHTML = '';
           if (data.type === "link") {
-            bodyHTML = `<div class="my-auto py-8 text-center text-xs font-bold uppercase relative z-20"><span class="bg-white px-6 py-4 border border-neutral-200">${data.url}</span></div>`;
+            // Removed border box here
+            bodyHTML = `<div class="my-auto py-8 text-center text-xs font-bold uppercase relative z-20"><span class="bg-white px-6 py-4">${data.url}</span></div>`;
           } else if (data.type === "text") {
             bodyHTML = `<div class="my-auto py-8 text-center text-xs uppercase px-6 relative z-20 flex justify-center"><span class="bg-white px-6 py-4 relative z-20">${data.textContent}</span></div>`;
           } else {
@@ -548,8 +549,8 @@
 
               ${bodyHTML}
 
-              <div class="flex justify-between items-end text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
-                <span>TRMNS</span>
+              <!-- Removed TRMNS from bottom-left, leaving empty span or justifyContent space intact -->
+              <div class="flex justify-end items-end text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
                 <span>${metaLine}</span>
               </div>
             </div>
