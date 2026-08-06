@@ -36,9 +36,14 @@
       opacity: 0.85;
     }
 
-    /* Horizontal 9-Stitch Needling Divider */
+    /* Edge-to-Edge Horizontal 9-Stitch Needling Divider */
     .stitch-overlay-horizontal {
-      width: 100%;
+      width: 100vw;
+      position: relative;
+      left: 50%;
+      right: 50%;
+      margin-left: -50vw;
+      margin-right: -50vw;
       height: 32px;
       pointer-events: none;
       background-image: repeating-linear-gradient(
@@ -52,7 +57,7 @@
     }
   </style>
 </head>
-<body class="bg-white text-black antialiased min-h-screen p-4 md:p-12 relative">
+<body class="bg-white text-black antialiased min-h-screen p-4 md:p-12 relative overflow-x-hidden">
 
   <!-- Continuous Vertical 9-Line Stitch Needling Overlay -->
   <div class="stitch-overlay-vertical"></div>
@@ -136,14 +141,14 @@
       }
       updateSavedBadge();
 
-      // 3. SEAMLESS SLIDE TEMPLATE RENDERER WITH HORIZONTAL STITCH BREAK
-      function renderCard(docId, imageUrl, entryNum, isFirst = false) {
+      // 3. SEAMLESS SLIDE TEMPLATE RENDERER WITH FULL-WIDTH HORIZONTAL STITCH BREAK
+      function renderCard(docId, imageUrl, entryNum) {
         const isSaved = docId && savedIds.includes(docId);
 
         return `
           <article class="relative">
-            <!-- Horizontal 9-Stitch Divider on breaks (omitted for the very top item) -->
-            ${!isFirst ? `<div class="stitch-overlay-horizontal my-4"></div>` : ''}
+            <!-- Full-Width Horizontal 9-Stitch Divider at Every Break -->
+            <div class="stitch-overlay-horizontal my-4"></div>
 
             <div class="py-12 md:py-20 min-h-[85vh] flex flex-col justify-between">
               <!-- Top Bar -->
@@ -289,19 +294,18 @@
               </div>
             `;
           } else {
-            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "1", true);
+            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "1");
           }
           return;
         }
 
         let totalDocs = allDocs.length;
-        docsToRender.forEach((doc, idx) => {
+        docsToRender.forEach((doc) => {
           const data = doc.data();
           const docId = doc.id;
           const indexInAll = allDocs.findIndex(d => d.id === docId);
           const entryNum = totalDocs - indexInAll;
-          const isFirst = idx === 0;
-          feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum, isFirst));
+          feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum));
         });
       }
 
