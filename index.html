@@ -35,7 +35,7 @@
       font-family: 'Eurostile', sans-serif !important; 
     }
 
-    /* Vertical Fine 9-Stitch Needling Overlay */
+    /* Vertical Fine 9-Stitch Needling Overlay (z-30 ensures uninterrupted flow behind header buttons) */
     .stitch-overlay-vertical {
       position: fixed;
       top: 0;
@@ -44,7 +44,7 @@
       transform: translateX(-50%);
       width: 18px;
       pointer-events: none;
-      z-index: 5;
+      z-index: 30;
       background-image: repeating-linear-gradient(
         90deg,
         #cccccc 0px,
@@ -116,13 +116,11 @@
         overflow: hidden !important;
       }
 
-      /* Apply page breaks only between entries, preventing blank end pages */
       .print-page:not(:last-child) {
         page-break-after: always !important;
         break-after: page !important;
       }
 
-      /* Fine 9-Stitch Vertical Overlay for Print */
       .print-stitch-vertical {
         position: absolute !important;
         top: 0 !important;
@@ -153,8 +151,8 @@
   <!-- Continuous Vertical Fine 9-Line Stitch Needling Overlay -->
   <div class="stitch-overlay-vertical"></div>
 
-  <!-- Header with Seamless Integrated Horizontal 9-Stitch Needling -->
-  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-sm mb-8 text-[11px] tracking-widest uppercase relative h-[33px] flex items-center">
+  <!-- Header with Transparent Backdrop to Allow Vertical Needling Through -->
+  <header class="sticky top-0 z-40 bg-white/60 backdrop-blur-sm mb-8 text-[11px] tracking-widest uppercase relative h-[33px] flex items-center">
     
     <!-- Full-Width Horizontal 9-Stitch Background Overlay in Header -->
     <div class="stitch-overlay-header-horizontal"></div>
@@ -441,7 +439,6 @@
           stage.insertAdjacentHTML("beforeend", pageHTML);
         });
 
-        // Ensure images load fully before triggering window.print()
         const images = stage.querySelectorAll("img");
         const imagePromises = Array.from(images).map(img => {
           if (img.complete) return Promise.resolve();
@@ -452,7 +449,6 @@
         });
         await Promise.all(imagePromises);
 
-        // Trigger native print dialog
         window.print();
       };
 
@@ -508,7 +504,6 @@
         if (!error && result && result.event === "success") {
           const uploadedUrl = result.info.secure_url;
           
-          // Prompt uploader for a 2-3 word caption
           const userCaption = prompt("ENTER A 2-3 WORD DESCRIPTION FOR THIS ENTRY:", "RESEARCH");
           const finalCaption = (userCaption && userCaption.trim() !== "") ? userCaption.trim().toUpperCase() : "RESEARCH";
 
