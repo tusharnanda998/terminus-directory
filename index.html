@@ -58,7 +58,7 @@
       opacity: 0.85;
     }
 
-    /* Edge-to-Edge Horizontal 9-Stitch Needling (33px height = exactly 9 lines) */
+    /* Edge-to-Edge Horizontal 9-Stitch Needling */
     .stitch-overlay-header-horizontal {
       position: absolute;
       top: 0;
@@ -70,6 +70,41 @@
       z-index: 10;
       background-image: repeating-linear-gradient(
         0deg,
+        #d4d4d4 0px,
+        #d4d4d4 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      opacity: 0.85;
+    }
+
+    /* Dedicated PDF Page Container Rules */
+    .pdf-page-container {
+      width: 8.5in;
+      height: 11in;
+      box-sizing: border-box;
+      padding: 0.5in;
+      position: relative;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      break-after: page;
+      overflow: hidden;
+    }
+
+    .pdf-stitch-vertical {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 33px;
+      pointer-events: none;
+      z-index: 5;
+      background-image: repeating-linear-gradient(
+        90deg,
         #d4d4d4 0px,
         #d4d4d4 1px,
         transparent 1px,
@@ -116,6 +151,9 @@
     <p>&copy; TERMINUS.DIRECTORY</p>
     <p>ALL RIGHTS RESERVED.</p>
   </footer>
+
+  <!-- Hidden Container used strictly for generating clean PDF export layout -->
+  <div id="pdf-export-stage" style="position: absolute; left: -9999px; top: -9999px;"></div>
 
   <!-- Expanded Image Modal Lightbox -->
   <div 
@@ -209,7 +247,7 @@
 
             <!-- Bottom Bar -->
             <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase">
-              <!-- Bottom Left: Compact Action Icons (Circle Bookmark + Delete) -->
+              <!-- Bottom Left: Action Icons -->
               <div class="flex items-center space-x-2.5">
                 ${docId ? `
                   <button 
@@ -218,12 +256,10 @@
                     title="${isSaved ? 'Remove Bookmark' : 'Save Entry'}"
                   >
                     ${isSaved ? `
-                      <!-- Solid Circle when Saved -->
                       <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="9" />
                       </svg>
                     ` : `
-                      <!-- Outlined Circle with exact neutral-500 border matching Delete -->
                       <svg class="w-3 h-3 fill-none stroke-current" stroke-width="1.75" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="9" />
                       </svg>
@@ -324,21 +360,82 @@
         }
       };
 
-      // EXPORT SAVED SELECTIONS TO PDF
-      window.exportSavedPDF = function() {
+      // HIGH-PRECISION 1:1 PDF EXPORT ENGINE WITH STITCH OVERLAYS
+      window.exportSavedPDF = async function() {
         if (savedIds.length === 0) return;
 
-        const archiveFeed = document.getElementById("archive-feed");
-        
+        const stage = document.getElementById("pdf-export-stage");
+        stage.innerHTML = ""; // Clear stage
+
+        const docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
+        const totalDocs = allDocs.length;
+
+        // Build exact 8.5" x 11" pages
+        docsToRender.forEach((doc) => {
+          const data = doc.data();
+          const docId = doc.id;
+          const indexInAll = allDocs.findIndex(d => d.id === docId);
+          const entryNum = totalDocs - indexInAll;
+          const formattedNum = String(entryNum).padStart(3, '0');
+          const captionText = data.caption || "RESEARCH";
+          const signature = data.uploadedBy || "";
+          const metaLine = signature ? `${captionText} | ${signature}` : captionText;
+
+          const pageHTML = `
+            <div class="pdf-page-container">
+              <!-- Vertical 9-Line Stitch Needling per Page -->
+              <div class="pdf-stitch-vertical"></div>
+
+              <!-- Page Top Bar -->
+              <div class="flex justify-between items-start text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
+                <span>TERMINUS PROJECTS LLC ©</span>
+                <span>${formattedNum}</span>
+              </div>
+
+              <!-- Page Image Container (Auto-fitted, never cropped) -->
+              <div class="my-auto py-4 flex justify-center items-center relative z-20" style="max-height: 8.5in;">
+                <img 
+                  src="${data.imageUrl}" 
+                  alt="Research Item" 
+                  style="max-height: 8in; max-width: 6.5in; object-fit: contain; display: block; margin: 0 auto;"
+                  crossorigin="anonymous"
+                >
+              </div>
+
+              <!-- Page Bottom Bar -->
+              <div class="flex justify-between items-end text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
+                <span>TRMNS</span>
+                <span>${metaLine}</span>
+              </div>
+            </div>
+          `;
+          stage.insertAdjacentHTML("beforeend", pageHTML);
+        });
+
+        // Ensure all images are fully loaded in the DOM stage before compiling PDF
+        const images = stage.querySelectorAll("img");
+        const imagePromises = Array.from(images).map(img => {
+          if (img.complete) return Promise.resolve();
+          return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        });
+        await Promise.all(imagePromises);
+
+        // Configure PDF output with exact Letter Dimensions
         const opt = {
-          margin:       [0.4, 0.4, 0.4, 0.4],
+          margin:       0,
           filename:     'TERMINUS_SAVED_ARCHIVE.pdf',
           image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true },
+          html2canvas:  { scale: 2, useCORS: true, logging: false },
           jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(archiveFeed).save();
+        // Render PDF and clean stage
+        html2pdf().set(opt).from(stage).save().then(() => {
+          stage.innerHTML = "";
+        });
       };
 
       // RENDER FEED BASED ON ACTIVE TAB
