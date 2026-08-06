@@ -35,7 +35,7 @@
       font-family: 'Eurostile', sans-serif !important; 
     }
 
-    /* Vertical Fine 9-Stitch Needling Overlay (z-5 sits BEHIND images z-20) */
+    /* Vertical Fine 9-Stitch Needling Overlay */
     .stitch-overlay-vertical {
       position: fixed;
       top: 0;
@@ -151,25 +151,25 @@
   <!-- Continuous Vertical Fine 9-Line Stitch Needling Overlay -->
   <div class="stitch-overlay-vertical"></div>
 
-  <!-- Header with Transparent Background so vertical lines flow through seamlessly -->
-  <header class="sticky top-0 z-40 bg-transparent mb-8 text-[11px] tracking-widest uppercase relative h-[33px] flex items-center">
+  <!-- Header Perfectly Aligned Centrally Over 18px Horizontal Stitch Band -->
+  <header class="sticky top-0 z-40 bg-transparent mb-8 text-[11px] tracking-widest uppercase relative h-[18px] flex items-center justify-center">
     
     <!-- Full-Width Horizontal 9-Stitch Background Overlay in Header -->
     <div class="stitch-overlay-header-horizontal"></div>
 
-    <div class="flex justify-between items-center w-full relative z-20">
-      <!-- Left Side: Upload Trigger -->
-      <div>
-        <button id="upload_widget" class="bg-white text-black border border-neutral-300 px-3 py-1 text-[9px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer">
+    <div class="flex justify-between items-center w-full relative z-20 h-full">
+      <!-- Left Side: Upload Trigger (Centered vertically with stitch line) -->
+      <div class="flex items-center h-full">
+        <button id="upload_widget" class="bg-white text-black border border-neutral-300 px-2 py-0.5 text-[9px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-none flex items-center">
           + UPLOAD ENTRY
         </button>
       </div>
 
-      <!-- Right Side: Feed Filter Tabs + PDF Export Trigger -->
-      <div class="flex items-center space-x-4">
-        <button id="tab-all" onclick="switchTab('all')" class="font-bold text-black cursor-pointer bg-white px-1">INDEX</button>
-        <button id="tab-saved" onclick="switchTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer bg-white px-1">SAVED (<span id="saved-count">0</span>)</button>
-        <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden text-black underline hover:text-neutral-600 transition-colors cursor-pointer text-[9px] bg-white px-1">EXPORT PDF</button>
+      <!-- Right Side: Feed Filter Tabs + PDF Export Trigger (No white box backgrounds) -->
+      <div class="flex items-center space-x-4 h-full leading-none">
+        <button id="tab-all" onclick="switchTab('all')" class="font-bold text-black cursor-pointer leading-none">INDEX</button>
+        <button id="tab-saved" onclick="switchTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none">SAVED (<span id="saved-count">0</span>)</button>
+        <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden text-black underline hover:text-neutral-600 transition-colors cursor-pointer text-[9px] leading-none">EXPORT PDF</button>
       </div>
     </div>
   </header>
@@ -262,8 +262,8 @@
           <article class="py-12 md:py-20 min-h-[85vh] flex flex-col justify-between">
             <!-- Top Bar -->
             <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase">
-              <span class="bg-white px-1">TERMINUS PROJECTS LLC ©</span>
-              <span class="bg-white px-1">${formattedNum}</span>
+              <span>TERMINUS PROJECTS LLC ©</span>
+              <span>${formattedNum}</span>
             </div>
 
             <!-- Image Subject -->
@@ -280,7 +280,7 @@
             <!-- Bottom Bar -->
             <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase">
               <!-- Bottom Left: Action Icons -->
-              <div class="flex items-center space-x-2.5 bg-white px-1">
+              <div class="flex items-center space-x-2.5">
                 ${docId ? `
                   <button 
                     onclick="toggleSave('${docId}')" 
@@ -311,7 +311,7 @@
               </div>
 
               <!-- Bottom Right: Caption | Initials -->
-              <div class="bg-white px-1">
+              <div>
                 <span>${metaLine}</span>
               </div>
             </div>
@@ -360,12 +360,12 @@
         const exportBtn = document.getElementById("export-pdf-btn");
 
         if (tab === "all") {
-          allBtn.className = "font-bold text-black cursor-pointer bg-white px-1";
-          savedBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer bg-white px-1";
+          allBtn.className = "font-bold text-black cursor-pointer leading-none";
+          savedBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none";
           exportBtn.classList.add("hidden");
         } else {
-          savedBtn.className = "font-bold text-black cursor-pointer bg-white px-1";
-          allBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer bg-white px-1";
+          savedBtn.className = "font-bold text-black cursor-pointer leading-none";
+          allBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none";
           if (savedIds.length > 0) {
             exportBtn.classList.remove("hidden");
           } else {
@@ -417,8 +417,8 @@
               <div class="print-stitch-vertical"></div>
 
               <div class="flex justify-between items-start text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
-                <span class="bg-white px-1">TERMINUS PROJECTS LLC ©</span>
-                <span class="bg-white px-1">${formattedNum}</span>
+                <span>TERMINUS PROJECTS LLC ©</span>
+                <span>${formattedNum}</span>
               </div>
 
               <div class="my-auto py-2 flex justify-center items-center relative z-20" style="flex: 1; min-height: 0;">
@@ -432,8 +432,8 @@
               </div>
 
               <div class="flex justify-between items-end text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
-                <span class="bg-white px-1">TRMNS</span>
-                <span class="bg-white px-1">${metaLine}</span>
+                <span>TRMNS</span>
+                <span>${metaLine}</span>
               </div>
             </div>
           `;
