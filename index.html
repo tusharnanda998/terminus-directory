@@ -188,7 +188,7 @@
             <!-- Top Bar -->
             <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase">
               <span>TERMINUS PROJECTS LLC ©</span>
-              <span>${entryNum} / 999</span>
+              <span>${String(entryNum).padStart(3, '0')}</span>
             </div>
 
             <!-- Image Subject -->
@@ -327,7 +327,7 @@
               </div>
             `;
           } else {
-            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "1", "LOOK 01 ARCHIVE", "TN");
+            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", 1, "LOOK 01 ARCHIVE", "TN");
           }
           return;
         }
