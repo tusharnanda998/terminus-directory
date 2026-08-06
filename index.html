@@ -13,9 +13,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-  <!-- html2pdf Library for Client-Side PDF Generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
   <style>
     /* Direct CDN Links to GitHub Repository TTF Files via jsDelivr */
     @font-face {
@@ -78,39 +75,63 @@
       opacity: 0.85;
     }
 
-    /* Dedicated PDF Page Container Rules */
-    .pdf-page-container {
-      width: 8.5in;
-      height: 11in;
-      box-sizing: border-box;
-      padding: 0.5in;
-      position: relative;
-      background: #ffffff;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      page-break-after: always;
-      break-after: page;
-      overflow: hidden;
+    /* NATIVE PRINT/PDF STYLES */
+    @media print {
+      /* Hide standard layout when printing */
+      body > *:not(#print-stage) {
+        display: none !important;
+      }
+
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      #print-stage {
+        display: block !important;
+        width: 100% !important;
+      }
+
+      .print-page {
+        width: 100vw !important;
+        height: 100vh !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        position: relative !important;
+        box-sizing: border-box !important;
+        padding: 0.5in !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        overflow: hidden !important;
+      }
+
+      .print-stitch-vertical {
+        position: absolute !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 33px !important;
+        pointer-events: none !important;
+        z-index: 5 !important;
+        background-image: repeating-linear-gradient(
+          90deg,
+          #d4d4d4 0px,
+          #d4d4d4 1px,
+          transparent 1px,
+          transparent 4px
+        ) !important;
+        opacity: 0.85 !important;
+      }
     }
 
-    .pdf-stitch-vertical {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 33px;
-      pointer-events: none;
-      z-index: 5;
-      background-image: repeating-linear-gradient(
-        90deg,
-        #d4d4d4 0px,
-        #d4d4d4 1px,
-        transparent 1px,
-        transparent 4px
-      );
-      opacity: 0.85;
+    /* Hide print stage on normal browser view */
+    #print-stage {
+      display: none;
     }
   </style>
 </head>
@@ -152,8 +173,8 @@
     <p>ALL RIGHTS RESERVED.</p>
   </footer>
 
-  <!-- Fixed Container Positioned Directly Under Current Viewport for Clean Canvas Rendering -->
-  <div id="pdf-export-stage" style="position: fixed; top: 0; left: 0; z-index: -9999; opacity: 0.01; pointer-events: none;"></div>
+  <!-- Container for Native Browser Print Execution -->
+  <div id="print-stage"></div>
 
   <!-- Expanded Image Modal Lightbox -->
   <div 
@@ -360,17 +381,16 @@
         }
       };
 
-      // HIGH-PRECISION 1:1 PDF EXPORT ENGINE WITH VISIBLE STAGE CANVAS
+      // NATIVE BROWSER PRINT ENGINE FOR PDF EXPORT
       window.exportSavedPDF = async function() {
         if (savedIds.length === 0) return;
 
-        const stage = document.getElementById("pdf-export-stage");
+        const stage = document.getElementById("print-stage");
         stage.innerHTML = ""; 
 
         const docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
         const totalDocs = allDocs.length;
 
-        // Build exact 8.5" x 11" pages
         docsToRender.forEach((doc) => {
           const data = doc.data();
           const docId = doc.id;
@@ -382,27 +402,23 @@
           const metaLine = signature ? `${captionText} | ${signature}` : captionText;
 
           const pageHTML = `
-            <div class="pdf-page-container">
-              <!-- Vertical 9-Line Stitch Needling per Page -->
-              <div class="pdf-stitch-vertical"></div>
+            <div class="print-page">
+              <div class="print-stitch-vertical"></div>
 
-              <!-- Page Top Bar -->
               <div class="flex justify-between items-start text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
                 <span>TERMINUS PROJECTS LLC ©</span>
                 <span>${formattedNum}</span>
               </div>
 
-              <!-- Page Image Container -->
-              <div class="my-auto py-4 flex justify-center items-center relative z-20" style="height: 8.5in;">
+              <div class="my-auto py-4 flex justify-center items-center relative z-20" style="max-height: 80vh;">
                 <img 
                   src="${data.imageUrl}" 
                   alt="Research Item" 
-                  style="max-height: 8in; max-width: 6.5in; object-fit: contain; display: block; margin: 0 auto;"
+                  style="max-height: 75vh; max-width: 80vw; object-fit: contain; display: block; margin: 0 auto;"
                   crossorigin="anonymous"
                 >
               </div>
 
-              <!-- Page Bottom Bar -->
               <div class="flex justify-between items-end text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
                 <span>TRMNS</span>
                 <span>${metaLine}</span>
@@ -412,7 +428,7 @@
           stage.insertAdjacentHTML("beforeend", pageHTML);
         });
 
-        // Ensure images are completely loaded in the stage
+        // Ensure images load fully before triggering window.print()
         const images = stage.querySelectorAll("img");
         const imagePromises = Array.from(images).map(img => {
           if (img.complete) return Promise.resolve();
@@ -423,17 +439,8 @@
         });
         await Promise.all(imagePromises);
 
-        const opt = {
-          margin:       0,
-          filename:     'TERMINUS_SAVED_ARCHIVE.pdf',
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true, logging: false },
-          jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(stage).save().then(() => {
-          stage.innerHTML = "";
-        });
+        // Trigger native print dialog
+        window.print();
       };
 
       // RENDER FEED BASED ON ACTIVE TAB
