@@ -16,7 +16,7 @@
   <style>
     body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
 
-    /* Vertical 9-Stitch Needling Overlay (33px total bundle width) */
+    /* Vertical 9-Stitch Needling Overlay */
     .stitch-overlay-vertical {
       position: fixed;
       top: 0;
@@ -36,12 +36,12 @@
       opacity: 0.85;
     }
 
-    /* Edge-to-Edge Horizontal 9-Stitch Needling (33px total height = 9 lines) */
+    /* Edge-to-Edge Horizontal 9-Stitch Needling (33px height = exactly 9 lines) */
     .stitch-overlay-header-horizontal {
       position: absolute;
-      top: 50%;
+      top: 0;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translateX(-50%);
       width: 100vw;
       height: 33px;
       pointer-events: none;
@@ -62,13 +62,13 @@
   <!-- Continuous Vertical 9-Line Stitch Needling Overlay -->
   <div class="stitch-overlay-vertical"></div>
 
-  <!-- Header with Integrated Edge-to-Edge Horizontal 9-Stitch Needling -->
-  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b border-neutral-200 py-4 mb-8 text-[11px] tracking-widest uppercase relative">
+  <!-- Header with Seamless Integrated Horizontal 9-Stitch Needling -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-sm mb-8 text-[11px] tracking-widest uppercase relative h-[33px] flex items-center">
     
     <!-- Full-Width Horizontal 9-Stitch Background Overlay in Header -->
     <div class="stitch-overlay-header-horizontal"></div>
 
-    <div class="flex justify-between items-center max-w-full relative z-20">
+    <div class="flex justify-between items-center w-full relative z-20">
       <!-- Left Side: Upload Trigger -->
       <div>
         <button id="upload_widget" class="bg-black text-white px-3 py-1 text-[9px] hover:bg-neutral-800 transition-colors uppercase cursor-pointer">
