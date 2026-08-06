@@ -21,9 +21,7 @@
 
   <!-- Header -->
   <header class="flex justify-between items-center border-b border-neutral-300 pb-4 mb-8 text-[11px] tracking-widest uppercase">
-    <div>
-      <!-- Left side header title removed per creative direction -->
-    </div>
+    <div></div>
     <div class="flex items-center space-x-4">
       <button id="upload_widget" class="bg-black text-white px-3 py-1 text-[9px] hover:bg-neutral-800 transition-colors uppercase cursor-pointer">
         + UPLOAD ENTRY
@@ -87,16 +85,7 @@
             <!-- Top Bar -->
             <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase font-mono">
               <span>TERMINUS PROJECTS LLC ©</span>
-              <div class="flex items-center space-x-3">
-                <span>${entryNum} / 999</span>
-                ${docId ? `
-                  <button 
-                    onclick="deleteCard('${docId}')" 
-                    class="text-neutral-300 hover:text-black transition-colors cursor-pointer text-[10px] leading-none px-1" 
-                    title="Delete Entry"
-                  >✕</button>
-                ` : ''}
-              </div>
+              <span>${entryNum} / 999</span>
             </div>
 
             <!-- Image Subject -->
@@ -110,17 +99,26 @@
 
             <!-- Bottom Bar -->
             <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase font-mono">
-              <div></div>
+              <!-- Bottom Left: Save & Delete Actions -->
               <div class="flex items-center space-x-3">
                 ${docId ? `
                   <button 
                     onclick="toggleSave('${docId}')" 
-                    class="${isSaved ? 'text-black font-bold' : 'text-neutral-300 hover:text-black'} transition-colors cursor-pointer text-[12px] leading-none px-1"
+                    class="${isSaved ? 'text-black font-bold' : 'text-neutral-300 hover:text-black'} transition-colors cursor-pointer text-[12px] leading-none"
                     title="${isSaved ? 'Remove Bookmark' : 'Save Entry'}"
                   >
                     ${isSaved ? '★' : '☆'}
                   </button>
+                  <button 
+                    onclick="deleteCard('${docId}')" 
+                    class="text-neutral-300 hover:text-black transition-colors cursor-pointer text-[10px] leading-none" 
+                    title="Delete Entry"
+                  >✕</button>
                 ` : ''}
+              </div>
+
+              <!-- Bottom Right: Brand Tag -->
+              <div>
                 <span>TRMNS</span>
               </div>
             </div>
@@ -191,7 +189,7 @@
               </div>
             `;
           } else {
-            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "001");
+            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "1");
           }
           return;
         }
@@ -201,7 +199,7 @@
           const data = doc.data();
           const docId = doc.id;
           const indexInAll = allDocs.findIndex(d => d.id === docId);
-          const entryNum = String(totalDocs - indexInAll).padStart(3, '0');
+          const entryNum = totalDocs - indexInAll;
           feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum));
         });
       }
