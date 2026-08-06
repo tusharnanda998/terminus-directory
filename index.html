@@ -88,7 +88,7 @@
     <div class="stitch-overlay-header-horizontal"></div>
 
     <div class="flex justify-between items-center w-full relative z-20">
-      <!-- Left Side: Upload Trigger (Whited Out with Black Text) -->
+      <!-- Left Side: Upload Trigger -->
       <div>
         <button id="upload_widget" class="bg-white text-black border border-neutral-300 px-3 py-1 text-[9px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer">
           + UPLOAD ENTRY
@@ -139,7 +139,19 @@
       // 1. CLOUDINARY & TEAM CONFIG
       const CLOUD_NAME = "nh2yb4q3";
       const UPLOAD_PRESET = "terminus_preset";
-      const ADMIN_PASSCODE = "Glendale";
+
+      // Founders Key Mapping (5 Passcodes -> 5 Signatures)
+      const FOUNDER_KEYS = {
+        "TN01": "TN",
+        "MM02": "MM",
+        "TS03": "TS",
+        "JW04": "Woods",
+        "KJ05": "KJJ",
+        "Glendale": "TERMINUS TEAM" // Legacy fallback key
+      };
+
+      // Active uploader state
+      let activeUploaderInitials = null;
 
       // 2. YOUR FIREBASE CONFIG
       const firebaseConfig = {
@@ -166,9 +178,10 @@
       }
       updateSavedBadge();
 
-      // 3. SEAMLESS SLIDE TEMPLATE RENDERER WITH DYNAMIC CAPTION
-      function renderCard(docId, imageUrl, entryNum, captionText = "RESEARCH ENTRY") {
+      // 3. SEAMLESS SLIDE TEMPLATE RENDERER WITH DYNAMIC CAPTION & INITIALS
+      function renderCard(docId, imageUrl, entryNum, captionText = "RESEARCH ENTRY", signature = "") {
         const isSaved = docId && savedIds.includes(docId);
+        const metaLine = signature ? `${captionText} | ${signature}` : captionText;
 
         return `
           <article class="py-12 md:py-20 min-h-[85vh] flex flex-col justify-between">
@@ -221,9 +234,9 @@
                 ` : ''}
               </div>
 
-              <!-- Bottom Right: Dynamic 2-3 Word Caption -->
+              <!-- Bottom Right: Caption | Initials -->
               <div>
-                <span>${captionText}</span>
+                <span>${metaLine}</span>
               </div>
             </div>
           </article>
@@ -282,7 +295,7 @@
       // GLOBAL DELETE FUNCTION
       window.deleteCard = function(docId) {
         const userInput = prompt("ENTER ACCESS KEY TO DELETE:");
-        if (userInput === ADMIN_PASSCODE) {
+        if (FOUNDER_KEYS[userInput]) {
           if (confirm("Permanently delete this research card?")) {
             if (savedIds.includes(docId)) {
               toggleSave(docId);
@@ -314,7 +327,7 @@
               </div>
             `;
           } else {
-            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "1", "LOOK 01 ARCHIVE");
+            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "1", "LOOK 01 ARCHIVE", "TN");
           }
           return;
         }
@@ -326,7 +339,8 @@
           const indexInAll = allDocs.findIndex(d => d.id === docId);
           const entryNum = totalDocs - indexInAll;
           const captionText = data.caption || "RESEARCH ENTRY";
-          feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum, captionText));
+          const signature = data.uploadedBy || "";
+          feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum, captionText, signature));
         });
       }
 
@@ -336,7 +350,7 @@
         renderFeed();
       });
 
-      // 5. CLOUDINARY UPLOAD HANDLER WITH CAPTION PROMPT
+      // 5. CLOUDINARY UPLOAD HANDLER WITH AUTO SIGNATURE
       const myWidget = cloudinary.createUploadWidget({
         cloudName: CLOUD_NAME,
         uploadPreset: UPLOAD_PRESET,
@@ -354,6 +368,7 @@
           db.collection("posts").add({
             imageUrl: uploadedUrl,
             caption: finalCaption,
+            uploadedBy: activeUploaderInitials || "TERMINUS TEAM",
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         }
@@ -363,8 +378,9 @@
       const uploadBtn = document.getElementById("upload_widget");
       if (uploadBtn) {
         uploadBtn.addEventListener("click", function(){
-          const userInput = prompt("ENTER ACCESS KEY:");
-          if (userInput === ADMIN_PASSCODE) {
+          const userInput = prompt("ENTER YOUR PERSONAL ACCESS KEY:");
+          if (FOUNDER_KEYS[userInput]) {
+            activeUploaderInitials = FOUNDER_KEYS[userInput];
             myWidget.open();
           } else if (userInput !== null) {
             alert("ACCESS DENIED: INVALID KEY");
