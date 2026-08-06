@@ -151,13 +151,13 @@
   <!-- Continuous Vertical Fine 9-Line Stitch Needling Overlay -->
   <div class="stitch-overlay-vertical"></div>
 
-  <!-- Header Container (Constrained to max-w-4xl) -->
-  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm mb-2 text-[11px] tracking-widest uppercase relative h-[18px] flex items-center justify-center py-4">
+  <!-- Header Container -->
+  <header class="sticky top-0 z-40 bg-transparent mb-2 text-[11px] tracking-widest uppercase relative h-[18px] flex items-center justify-center">
     
     <!-- Full-Width Horizontal 9-Stitch Background Overlay in Header -->
     <div class="stitch-overlay-horizontal"></div>
 
-    <div class="max-w-4xl mx-auto w-full flex justify-between items-center relative z-20 h-full px-4 md:px-0">
+    <div class="flex justify-between items-center w-full relative z-20 h-full">
       <!-- Left Side: Dynamic Upload Trigger -->
       <div class="flex items-center h-full">
         <button id="upload_widget" class="bg-white text-black border border-neutral-300 px-2 py-0.5 text-[9px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-none flex items-center">
@@ -174,8 +174,8 @@
     </div>
   </header>
 
-  <!-- INDEX SUB-NAV (Constrained to max-w-4xl) -->
-  <div id="index-subnav" class="max-w-4xl mx-auto w-full relative z-20 mb-8 flex justify-end px-4 md:px-0">
+  <!-- INDEX SUB-NAV (Positioned Under INDEX on the Right with | Separators) -->
+  <div id="index-subnav" class="w-full relative z-20 mb-8 flex justify-end">
     <div class="flex items-center space-x-2 text-[9px] tracking-widest uppercase">
       <button id="subtab-all" onclick="setIndexFilter('all')" class="font-bold text-black cursor-pointer">ALL</button>
       <span class="text-neutral-300">|</span>
@@ -186,12 +186,12 @@
   </div>
 
   <!-- Seamless Feed Container -->
-  <main id="archive-feed" class="max-w-4xl mx-auto divide-y divide-neutral-200 relative z-20 px-4 md:px-0">
+  <main id="archive-feed" class="max-w-4xl mx-auto divide-y divide-neutral-200 relative z-20">
     <!-- Dynamic slides load here automatically -->
   </main>
 
   <!-- Footer Layout -->
-  <footer class="max-w-4xl mx-auto mt-20 mb-8 text-[9px] tracking-widest uppercase relative z-20 px-4 md:px-0">
+  <footer class="mt-20 mb-8 text-[9px] tracking-widest uppercase relative z-20">
     <!-- Row 1: Aligned Centrally Over 18px Horizontal Stitch Band -->
     <div class="relative h-[18px] flex items-center justify-center">
       <!-- Full-Width Horizontal 9-Stitch Background Overlay in Footer -->
