@@ -217,15 +217,17 @@
       let savedIds = JSON.parse(localStorage.getItem("terminus_saved_cards") || "[]");
 
       function updateSavedBadge() {
-        if (allDocs.length > 0) {
+        if (allDocs && allDocs.length > 0) {
           const validSavedIds = savedIds.filter(id => allDocs.some(doc => doc.id === id));
           if (validSavedIds.length !== savedIds.length) {
             savedIds = validSavedIds;
             localStorage.setItem("terminus_saved_cards", JSON.stringify(savedIds));
           }
         }
-        document.getElementById("saved-count").innerText = savedIds.length;
+        const badge = document.getElementById("saved-count");
+        if (badge) badge.innerText = savedIds.length;
       }
+      updateSavedBadge();
 
       // SEAMLESS CARD RENDERER
       function renderCard(docId, data, entryNum) {
@@ -411,7 +413,7 @@
         }
       };
 
-      // RELIABLE HTML2PDF DOWNLOAD ENGINE
+      // RELIABLE HTML2PDF DOWNLOAD ENGINE (Strict Single Page per Entry)
       window.exportSavedPDF = async function() {
         if (savedIds.length === 0) return;
 
@@ -483,45 +485,6 @@
         });
       };
 
-          const pageHTML = `
-            <div style="width: 800px; height: 1050px; padding: 50px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; justify-content: space-between; background: #ffffff; page-break-after: always; margin-bottom: 20px;">
-              <div style="position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 18px; pointer-events: none; background-image: repeating-linear-gradient(90deg, #b3b3b3 0px, #b3b3b3 1px, transparent 1px, transparent 2px); opacity: 0.65;"></div>
-              <div style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.1em; color: #737373; text-transform: uppercase; position: relative; z-index: 2;">
-                <span>TERMINUS PROJECTS LLC ©</span>
-                <span>${formattedNum}</span>
-              </div>
-              <div style="position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                ${bodyHTML}
-              </div>
-              <div style="display: flex; justify-content: flex-end; font-size: 10px; letter-spacing: 0.1em; color: #737373; text-transform: uppercase; position: relative; z-index: 2;">
-                <span>${metaLine}</span>
-              </div>
-            </div>
-          `;
-          stage.insertAdjacentHTML("beforeend", pageHTML);
-        });
-
-        // Ensure all images are fully loaded before capturing canvas
-        const images = stage.querySelectorAll("img");
-        await Promise.all(Array.from(images).map(img => {
-          if (img.complete) return Promise.resolve();
-          return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
-        }));
-
-        const opt = {
-          margin:       0,
-          filename:     'terminus-directory-archive.pdf',
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
-          jsPDF:        { unit: 'px', format: [800, 1050], orientation: 'portrait' }
-        };
-
-        html2pdf().from(stage).set(opt).save().then(() => {
-          stage.style.display = "none";
-          stage.innerHTML = "";
-        });
-      };
-
       function renderFeed() {
         const feedContainer = document.getElementById("archive-feed");
         feedContainer.innerHTML = ""; 
@@ -548,6 +511,7 @@
               NO ENTRIES FOUND IN THIS SECTION.
             </div>
           `;
+          updateSavedBadge();
           return;
         }
 
