@@ -13,6 +13,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+  <!-- html2pdf Library for Client-Side PDF Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <style>
     /* Direct CDN Links to GitHub Repository TTF Files via jsDelivr */
     @font-face {
@@ -95,10 +98,11 @@
         </button>
       </div>
 
-      <!-- Right Side: Feed Filter Tabs -->
+      <!-- Right Side: Feed Filter Tabs + PDF Export Trigger -->
       <div class="flex items-center space-x-4">
         <button id="tab-all" onclick="switchTab('all')" class="font-bold text-black cursor-pointer">INDEX</button>
         <button id="tab-saved" onclick="switchTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer">SAVED (<span id="saved-count">0</span>)</button>
+        <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden text-black underline hover:text-neutral-600 transition-colors cursor-pointer text-[9px]">EXPORT PDF</button>
       </div>
     </div>
   </header>
@@ -199,6 +203,7 @@
                 alt="Research Item" 
                 onclick="openLightbox('${imageUrl}')"
                 class="max-h-[60vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 relative z-20 cursor-zoom-in bg-white"
+                crossorigin="anonymous"
               >
             </div>
 
@@ -284,13 +289,20 @@
         currentTab = tab;
         const allBtn = document.getElementById("tab-all");
         const savedBtn = document.getElementById("tab-saved");
+        const exportBtn = document.getElementById("export-pdf-btn");
 
         if (tab === "all") {
           allBtn.className = "font-bold text-black cursor-pointer";
           savedBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
+          exportBtn.classList.add("hidden");
         } else {
           savedBtn.className = "font-bold text-black cursor-pointer";
           allBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
+          if (savedIds.length > 0) {
+            exportBtn.classList.remove("hidden");
+          } else {
+            exportBtn.classList.add("hidden");
+          }
         }
         renderFeed();
       };
@@ -310,6 +322,23 @@
         } else if (userInput !== null) {
           alert("ACCESS DENIED: INVALID KEY");
         }
+      };
+
+      // EXPORT SAVED SELECTIONS TO PDF
+      window.exportSavedPDF = function() {
+        if (savedIds.length === 0) return;
+
+        const archiveFeed = document.getElementById("archive-feed");
+        
+        const opt = {
+          margin:       [0.4, 0.4, 0.4, 0.4],
+          filename:     'TERMINUS_SAVED_ARCHIVE.pdf',
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true },
+          jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(archiveFeed).save();
       };
 
       // RENDER FEED BASED ON ACTIVE TAB
