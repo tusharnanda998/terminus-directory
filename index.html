@@ -75,19 +75,25 @@
       opacity: 0.85;
     }
 
-    /* NATIVE PRINT/PDF STYLES */
-    @media print {
-      /* Hide standard layout when printing */
-      body > *:not(#print-stage) {
-        display: none !important;
-      }
+    /* MOBILE & DESKTOP OPTIMIZED PRINT & PDF ENGINE */
+    @page {
+      size: letter portrait;
+      margin: 0;
+    }
 
-      body {
+    @media print {
+      html, body {
+        width: 100% !important;
+        height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
-        background: white !important;
+        background: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+      }
+
+      body > *:not(#print-stage) {
+        display: none !important;
       }
 
       #print-stage {
@@ -95,17 +101,23 @@
         width: 100% !important;
       }
 
+      /* Fixed Inch-based dimensions prevent mobile browser zoom/overflow issues */
       .print-page {
-        width: 100vw !important;
-        height: 100vh !important;
-        page-break-after: always !important;
-        break-after: page !important;
-        position: relative !important;
-        box-sizing: border-box !important;
+        width: 8.5in !important;
+        height: 11in !important;
+        max-width: 8.5in !important;
+        max-height: 11in !important;
+        margin: 0 auto !important;
         padding: 0.5in !important;
+        box-sizing: border-box !important;
+        position: relative !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
         overflow: hidden !important;
       }
 
@@ -129,7 +141,6 @@
       }
     }
 
-    /* Hide print stage on normal browser view */
     #print-stage {
       display: none;
     }
@@ -205,11 +216,11 @@
 
       // Founders Key Mapping (5 Passcodes -> 5 Signatures/Initials)
       const FOUNDER_KEYS = {
-        "TN": "TN",
-        "MM": "MM",
-        "TS": "TS",
-        "JW": "Woods",
-        "KJJ": "KJJ",
+        "TN01": "TN",
+        "MM02": "MM",
+        "TS03": "TS",
+        "JW04": "Woods",
+        "KJ05": "KJJ",
         "Glendale": "TERMINUS TEAM" // Legacy fallback key
       };
 
@@ -410,11 +421,11 @@
                 <span>${formattedNum}</span>
               </div>
 
-              <div class="my-auto py-4 flex justify-center items-center relative z-20" style="max-height: 80vh;">
+              <div class="my-auto py-4 flex justify-center items-center relative z-20" style="height: 8.5in; max-height: 8.5in;">
                 <img 
                   src="${data.imageUrl}" 
                   alt="Research Item" 
-                  style="max-height: 75vh; max-width: 80vw; object-fit: contain; display: block; margin: 0 auto;"
+                  style="max-height: 8in; max-width: 6.5in; object-fit: contain; display: block; margin: 0 auto;"
                   crossorigin="anonymous"
                 >
               </div>
