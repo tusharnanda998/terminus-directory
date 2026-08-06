@@ -33,7 +33,10 @@
       <button id="upload_widget" class="bg-black text-white px-3 py-1 text-[9px] hover:bg-neutral-800 transition-colors uppercase cursor-pointer">
         + UPLOAD ENTRY
       </button>
-      <span class="text-neutral-500">[INDEX]</span>
+      
+      <!-- Feed Filter Tabs -->
+      <button id="tab-all" onclick="switchTab('all')" class="font-bold text-black cursor-pointer">[INDEX]</button>
+      <button id="tab-saved" onclick="switchTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer">SAVED (<span id="saved-count">0</span>)</button>
     </div>
   </header>
 
@@ -70,14 +73,26 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
 
-      // 3. CARD TEMPLATE RENDERER WITH SUBTLE X BUTTON
+      // State Management
+      let allDocs = [];
+      let currentTab = "all"; 
+      let savedIds = JSON.parse(localStorage.getItem("terminus_saved_cards") || "[]");
+
+      function updateSavedBadge() {
+        document.getElementById("saved-count").innerText = savedIds.length;
+      }
+      updateSavedBadge();
+
+      // 3. CARD TEMPLATE RENDERER WITH SUBTLE STAR TOGGLE
       function renderCard(docId, imageUrl, entryNum) {
+        const isSaved = docId && savedIds.includes(docId);
+
         return `
           <article class="relative bg-white border border-neutral-300 p-8 sm:p-12 min-h-[75vh] flex flex-col justify-between shadow-sm">
             <!-- Top Bar -->
             <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase font-mono">
               <span>TERMINUS ©</span>
-              <div class="flex items-center space-x-2">
+              <div class="flex items-center space-x-3">
                 <span>${entryNum} / 333</span>
                 ${docId ? `
                   <button 
@@ -101,20 +116,62 @@
               >
             </div>
 
-            <!-- Bottom Bar -->
+            <!-- Bottom Bar with Subtle Star Icon -->
             <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase font-mono">
               <span>LOOK ${entryNum}</span>
-              <span>TRMNS</span>
+              <div class="flex items-center space-x-3">
+                ${docId ? `
+                  <button 
+                    onclick="toggleSave('${docId}')" 
+                    class="${isSaved ? 'text-black font-bold' : 'text-neutral-300 hover:text-black'} transition-colors cursor-pointer text-[12px] leading-none px-1"
+                    title="${isSaved ? 'Remove Bookmark' : 'Save Entry'}"
+                  >
+                    ${isSaved ? '★' : '☆'}
+                  </button>
+                ` : ''}
+                <span>TRMNS</span>
+              </div>
             </div>
           </article>
         `;
       }
+
+      // GLOBAL BOOKMARK TOGGLE
+      window.toggleSave = function(docId) {
+        if (savedIds.includes(docId)) {
+          savedIds = savedIds.filter(id => id !== docId);
+        } else {
+          savedIds.push(docId);
+        }
+        localStorage.setItem("terminus_saved_cards", JSON.stringify(savedIds));
+        updateSavedBadge();
+        renderFeed();
+      };
+
+      // GLOBAL TAB SWITCHER
+      window.switchTab = function(tab) {
+        currentTab = tab;
+        const allBtn = document.getElementById("tab-all");
+        const savedBtn = document.getElementById("tab-saved");
+
+        if (tab === "all") {
+          allBtn.className = "font-bold text-black cursor-pointer";
+          savedBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
+        } else {
+          savedBtn.className = "font-bold text-black cursor-pointer";
+          allBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
+        }
+        renderFeed();
+      };
 
       // GLOBAL DELETE FUNCTION
       window.deleteCard = function(docId) {
         const userInput = prompt("ENTER ACCESS KEY TO DELETE:");
         if (userInput === ADMIN_PASSCODE) {
           if (confirm("Permanently delete this research card?")) {
+            if (savedIds.includes(docId)) {
+              toggleSave(docId);
+            }
             db.collection("posts").doc(docId).delete().catch((error) => {
               alert("Error deleting card: " + error.message);
             });
@@ -124,23 +181,43 @@
         }
       };
 
-      // 4. LOAD & DISPLAY SAVED CARDS FROM FIREBASE
-      db.collection("posts").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+      // RENDER FEED BASED ON ACTIVE TAB
+      function renderFeed() {
         const feedContainer = document.getElementById("archive-feed");
         feedContainer.innerHTML = ""; 
 
-        if (snapshot.empty) {
-          feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "001");
+        let docsToRender = allDocs;
+        if (currentTab === "saved") {
+          docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
+        }
+
+        if (docsToRender.length === 0) {
+          if (currentTab === "saved") {
+            feedContainer.innerHTML = `
+              <div class="text-center py-24 font-mono text-[11px] text-neutral-400 uppercase tracking-widest">
+                NO SAVED ENTRIES IN YOUR ARCHIVE.
+              </div>
+            `;
+          } else {
+            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "001");
+          }
           return;
         }
 
-        let totalDocs = snapshot.docs.length;
-        snapshot.docs.forEach((doc, index) => {
+        let totalDocs = allDocs.length;
+        docsToRender.forEach((doc) => {
           const data = doc.data();
           const docId = doc.id;
-          const entryNum = String(totalDocs - index).padStart(3, '0');
+          const indexInAll = allDocs.findIndex(d => d.id === docId);
+          const entryNum = String(totalDocs - indexInAll).padStart(3, '0');
           feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum));
         });
+      }
+
+      // 4. LOAD REAL-TIME CARDS FROM FIREBASE
+      db.collection("posts").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+        allDocs = snapshot.docs;
+        renderFeed();
       });
 
       // 5. CLOUDINARY UPLOAD HANDLER
