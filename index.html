@@ -13,6 +13,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+  <!-- html2pdf Library for Mobile & Desktop PDF Downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <style>
     /* Direct CDN Links to GitHub Repository TTF Files via jsDelivr */
     @font-face {
@@ -75,74 +78,41 @@
       opacity: 0.7;
     }
 
-    /* MOBILE & DESKTOP PRINT ENGINE */
-    @page {
-      size: letter portrait;
-      margin: 0;
-    }
-
-    @media print {
-      html, body {
-        width: 100% !important;
-        height: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: #ffffff !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-
-      body > *:not(#print-stage) {
-        display: none !important;
-      }
-
-      #print-stage {
-        display: block !important;
-        width: 100% !important;
-      }
-
-      .print-page {
-        width: 100% !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
-        padding: 0.4in !important;
-        box-sizing: border-box !important;
-        position: relative !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: space-between !important;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-        overflow: hidden !important;
-      }
-
-      .print-page:not(:last-child) {
-        page-break-after: always !important;
-        break-after: page !important;
-      }
-
-      .print-stitch-vertical {
-        position: absolute !important;
-        top: 0 !important;
-        bottom: 0 !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: 18px !important;
-        pointer-events: none !important;
-        z-index: 5 !important;
-        background-image: repeating-linear-gradient(
-          90deg,
-          #b3b3b3 0px,
-          #b3b3b3 1px,
-          transparent 1px,
-          transparent 2px
-        ) !important;
-        opacity: 0.65 !important;
-      }
-    }
-
+    /* MOBILE & DESKTOP PDF / PRINT STAGING */
     #print-stage {
       display: none;
+    }
+
+    .print-page {
+      width: 8.5in;
+      height: 11in;
+      padding: 0.5in;
+      box-sizing: border-box;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #ffffff;
+      page-break-after: always;
+    }
+
+    .print-stitch-vertical {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      pointer-events: none;
+      z-index: 5;
+      background-image: repeating-linear-gradient(
+        90deg,
+        #b3b3b3 0px,
+        #b3b3b3 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      opacity: 0.65;
     }
   </style>
 </head>
@@ -174,7 +144,7 @@
     </div>
   </header>
 
-  <!-- INDEX SUB-NAV (Centered directly underneath INDEX) -->
+  <!-- INDEX SUB-NAV -->
   <div id="index-subnav" class="w-full relative z-20 mb-8 flex justify-end">
     <div class="flex items-center space-x-2 text-[9px] tracking-widest uppercase pr-[54px]">
       <button id="subtab-images" onclick="toggleIndexFilter('images')" class="font-bold text-black cursor-pointer transition-colors">IMAGES</button>
@@ -219,7 +189,7 @@
     </div>
   </footer>
 
-  <!-- Container for Native Browser Print Execution -->
+  <!-- Container for PDF Generation Engine -->
   <div id="print-stage"></div>
 
   <!-- Expanded Image Modal Lightbox -->
@@ -249,7 +219,6 @@
       const CLOUD_NAME = "nh2yb4q3";
       const UPLOAD_PRESET = "terminus_preset";
 
-      // Founders Key Mapping
       const FOUNDER_KEYS = {
         "TN": "TN",
         "MM": "MM",
@@ -275,14 +244,10 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
 
-      // State Management
       let allDocs = [];
-      let currentMainTab = "all"; // 'all' (Index), 'saved'
-      
-      // Independent Multi-Select Filter State (Both true by default)
+      let currentMainTab = "all";
       let filterShowImages = true;
       let filterShowText = true;
-
       let savedIds = JSON.parse(localStorage.getItem("terminus_saved_cards") || "[]");
 
       function updateSavedBadge() {
@@ -302,9 +267,11 @@
 
         if (data.type === "link") {
           mainContent = `
-            <div class="relative my-auto flex flex-col justify-center items-center text-center max-w-xl mx-auto w-full z-20">
-              <div class="bg-white px-6 py-4 relative z-20 flex flex-col items-center justify-center">
-                <span class="text-[9px] uppercase tracking-widest text-neutral-400 mb-2">EXTERNAL REFERENCE</span>
+            <div class="relative my-auto w-full grid grid-cols-2 gap-4 z-20 px-6">
+              <div class="flex justify-end text-right">
+                <span class="text-[9px] uppercase tracking-widest text-neutral-400">EXTERNAL REFERENCE</span>
+              </div>
+              <div class="flex flex-col items-start text-left">
                 <a href="${data.url}" target="_blank" rel="noopener noreferrer" class="text-sm md:text-base font-bold text-black hover:underline break-all mb-2">
                   ${data.url}
                 </a>
@@ -314,10 +281,17 @@
           `;
         } else if (data.type === "text") {
           mainContent = `
-            <div class="relative my-auto flex flex-col justify-center items-center text-center max-w-2xl mx-auto w-full z-20">
-              <p class="text-sm md:text-base text-black tracking-widest uppercase whitespace-pre-line bg-white px-6 py-4 relative z-20">
-                ${data.textContent}
-              </p>
+            <div class="relative my-auto w-full grid grid-cols-2 gap-4 z-20 px-4">
+              <div class="flex justify-end text-right pr-2">
+                <p class="text-sm md:text-base text-black tracking-widest uppercase whitespace-pre-line bg-white inline-block">
+                  ${data.textContent}
+                </p>
+              </div>
+              <div class="flex justify-start text-left pl-2">
+                <p class="text-sm md:text-base text-black tracking-widest uppercase whitespace-pre-line bg-white inline-block">
+                  ${data.textContent}
+                </p>
+              </div>
             </div>
           `;
         } else {
@@ -336,18 +310,14 @@
 
         return `
           <article id="entry-${docId}" class="py-12 md:py-20 min-h-[85vh] flex flex-col justify-between">
-            <!-- Top Bar -->
             <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase">
               <span>TERMINUS PROJECTS LLC ©</span>
               <span>${formattedNum}</span>
             </div>
 
-            <!-- Subject -->
             ${mainContent}
 
-            <!-- Bottom Bar -->
             <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase">
-              <!-- Bottom Left: Action Icons -->
               <div class="flex items-center space-x-2.5">
                 ${docId ? `
                   <button 
@@ -356,13 +326,9 @@
                     title="${isSaved ? 'Remove Bookmark' : 'Save Entry'}"
                   >
                     ${isSaved ? `
-                      <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="9" />
-                      </svg>
+                      <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /></svg>
                     ` : `
-                      <svg class="w-3 h-3 fill-none stroke-current" stroke-width="1.75" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="9" />
-                      </svg>
+                      <svg class="w-3 h-3 fill-none stroke-current" stroke-width="1.75" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /></svg>
                     `}
                   </button>
                   <button 
@@ -388,8 +354,6 @@
                   <span id="copy-toast-${docId}" class="hidden text-[8px] text-black font-bold tracking-widest uppercase ml-1 transition-opacity">COPIED!</span>
                 ` : ''}
               </div>
-
-              <!-- Bottom Right: Caption | Initials -->
               <div>
                 <span>${metaLine}</span>
               </div>
@@ -398,24 +362,17 @@
         `;
       }
 
-      // COPY DIRECT ENTRY LINK TO CLIPBOARD
       window.copyEntryLink = function(docId) {
         const shareUrl = `${window.location.origin}${window.location.pathname}#entry-${docId}`;
-        
         navigator.clipboard.writeText(shareUrl).then(() => {
           const toast = document.getElementById(`copy-toast-${docId}`);
           if (toast) {
             toast.classList.remove("hidden");
-            setTimeout(() => {
-              toast.classList.add("hidden");
-            }, 1800);
+            setTimeout(() => toast.classList.add("hidden"), 1800);
           }
-        }).catch(err => {
-          alert("LINK: " + shareUrl);
-        });
+        }).catch(err => { alert("LINK: " + shareUrl); });
       };
 
-      // LIGHTBOX EXPAND HANDLERS
       window.openLightbox = function(imageUrl) {
         const lightbox = document.getElementById("lightbox");
         const lightboxImg = document.getElementById("lightbox-img");
@@ -434,7 +391,6 @@
         if (e.key === "Escape") closeLightbox();
       });
 
-      // GLOBAL BOOKMARK TOGGLE
       window.toggleSave = function(docId) {
         if (savedIds.includes(docId)) {
           savedIds = savedIds.filter(id => id !== docId);
@@ -446,7 +402,6 @@
         renderFeed();
       };
 
-      // TAB CONTROLLERS
       window.switchMainTab = function(tab) {
         currentMainTab = tab;
         const allBtn = document.getElementById("tab-all");
@@ -468,48 +423,32 @@
         renderFeed();
       };
 
-      // TOGGLE INDEPENDENT FILTER BUTTONS
       window.toggleIndexFilter = function(type) {
-        if (type === 'images') {
-          filterShowImages = !filterShowImages;
-        } else if (type === 'text') {
-          filterShowText = !filterShowText;
-        }
+        if (type === 'images') filterShowImages = !filterShowImages;
+        if (type === 'text') filterShowText = !filterShowText;
 
         const btnImages = document.getElementById("subtab-images");
         const btnText = document.getElementById("subtab-text");
 
-        if (filterShowImages) {
-          btnImages.className = "font-bold text-black cursor-pointer transition-colors";
-        } else {
-          btnImages.className = "font-weight-normal text-neutral-400 hover:text-black cursor-pointer transition-colors";
-        }
-
-        if (filterShowText) {
-          btnText.className = "font-bold text-black cursor-pointer transition-colors";
-        } else {
-          btnText.className = "font-weight-normal text-neutral-400 hover:text-black cursor-pointer transition-colors";
-        }
+        btnImages.className = filterShowImages ? "font-bold text-black cursor-pointer transition-colors" : "text-neutral-400 hover:text-black cursor-pointer transition-colors";
+        btnText.className = filterShowText ? "font-bold text-black cursor-pointer transition-colors" : "text-neutral-400 hover:text-black cursor-pointer transition-colors";
 
         renderFeed();
       };
 
-      // GLOBAL DELETE FUNCTION
       window.deleteCard = function(docId) {
         const userInput = prompt("ENTER ACCESS KEY TO DELETE:");
         if (FOUNDER_KEYS[userInput]) {
           if (confirm("Permanently delete this research card?")) {
             if (savedIds.includes(docId)) toggleSave(docId);
-            db.collection("posts").doc(docId).delete().catch((error) => {
-              alert("Error deleting card: " + error.message);
-            });
+            db.collection("posts").doc(docId).delete().catch(error => alert("Error deleting card: " + error.message));
           }
         } else if (userInput !== null) {
           alert("ACCESS DENIED: INVALID KEY");
         }
       };
 
-      // NATIVE PRINT ENGINE
+      // MOBILE & DESKTOP HTML2PDF DOWNLOAD ENGINE
       window.exportSavedPDF = async function() {
         if (savedIds.length === 0) return;
 
@@ -531,19 +470,13 @@
 
           let bodyHTML = '';
           if (data.type === "link") {
-            bodyHTML = `<div class="my-auto py-8 text-center text-xs font-bold uppercase relative z-20"><span class="bg-white px-6 py-4">${data.url}</span></div>`;
+            bodyHTML = `<div style="margin: auto; text-align: center; font-size: 11px; font-weight: bold; text-transform: uppercase;"><span>${data.url}</span></div>`;
           } else if (data.type === "text") {
-            bodyHTML = `<div class="my-auto py-8 text-center text-xs uppercase px-6 relative z-20 flex justify-center"><span class="bg-white px-6 py-4 relative z-20">${data.textContent}</span></div>`;
+            bodyHTML = `<div style="margin: auto; text-align: center; font-size: 11px; text-transform: uppercase; padding: 0 20px;"><span>${data.textContent}</span></div>`;
           } else {
             bodyHTML = `
-              <div class="my-auto py-2 flex justify-center items-center relative z-20" style="flex: 1; min-height: 0;">
-                <img 
-                  src="${data.imageUrl}" 
-                  alt="Research Item" 
-                  style="max-height: 100%; max-width: 100%; object-fit: contain; display: block; margin: 0 auto;"
-                  class="bg-white relative z-20"
-                  crossorigin="anonymous"
-                >
+              <div style="margin: auto; display: flex; justify-content: center; align-items: center; flex: 1; min-height: 0; padding: 10px 0;">
+                <img src="${data.imageUrl}" alt="Research Item" style="max-height: 100%; max-width: 100%; object-fit: contain; display: block; margin: 0 auto; background: #fff;" crossorigin="anonymous">
               </div>
             `;
           }
@@ -551,15 +484,12 @@
           const pageHTML = `
             <div class="print-page">
               <div class="print-stitch-vertical"></div>
-
-              <div class="flex justify-between items-start text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
+              <div style="display: flex; justify-content: space-between; font-size: 9px; letter-spacing: 0.1em; color: #737373; text-transform: uppercase;">
                 <span>TERMINUS PROJECTS LLC ©</span>
                 <span>${formattedNum}</span>
               </div>
-
               ${bodyHTML}
-
-              <div class="flex justify-end items-end text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
+              <div style="display: flex; justify-content: flex-end; font-size: 9px; letter-spacing: 0.1em; color: #737373; text-transform: uppercase;">
                 <span>${metaLine}</span>
               </div>
             </div>
@@ -568,19 +498,25 @@
         });
 
         const images = stage.querySelectorAll("img");
-        const imagePromises = Array.from(images).map(img => {
+        await Promise.all(Array.from(images).map(img => {
           if (img.complete) return Promise.resolve();
-          return new Promise(resolve => {
-            img.onload = resolve;
-            img.onerror = resolve;
-          });
-        });
-        await Promise.all(imagePromises);
+          return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+        }));
 
-        window.print();
+        // Configure and generate direct PDF download file (works on mobile & desktop)
+        const opt = {
+          margin:       0,
+          filename:     'terminus-directory-archive.pdf',
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+          jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().from(stage).set(opt).save().then(() => {
+          stage.innerHTML = "";
+        });
       };
 
-      // RENDER FEED BASED ON MULTI-SELECT FILTER STATE
       function renderFeed() {
         const feedContainer = document.getElementById("archive-feed");
         feedContainer.innerHTML = ""; 
@@ -591,7 +527,6 @@
           docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
         }
 
-        // Apply multi-select filter conditions
         docsToRender = docsToRender.filter(doc => {
           const type = doc.data().type || "image";
           const isImage = (type === "image");
@@ -620,7 +555,6 @@
           feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data, entryNum));
         });
 
-        // Auto-scroll to direct hash entry if present in URL
         if (window.location.hash) {
           const target = document.querySelector(window.location.hash);
           if (target) {
@@ -629,13 +563,11 @@
         }
       }
 
-      // LOAD FIREBASE REALTIME POSTS
       db.collection("posts").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         allDocs = snapshot.docs;
         renderFeed();
       });
 
-      // CLOUDINARY WIDGET
       const myWidget = cloudinary.createUploadWidget({
         cloudName: CLOUD_NAME,
         uploadPreset: UPLOAD_PRESET,
@@ -645,7 +577,6 @@
       }, (error, result) => { 
         if (!error && result && result.event === "success") {
           const uploadedUrl = result.info.secure_url;
-          
           const userCaption = prompt("ENTER A 2-3 WORD DESCRIPTION FOR THIS ENTRY:", "RESEARCH");
           const finalCaption = (userCaption && userCaption.trim() !== "") ? userCaption.trim().toUpperCase() : "RESEARCH";
 
@@ -659,7 +590,6 @@
         }
       });
 
-      // UPLOAD BUTTON DISPATCHER
       const uploadBtn = document.getElementById("upload_widget");
       if (uploadBtn) {
         uploadBtn.addEventListener("click", function(){
@@ -671,18 +601,14 @@
 
           activeUploaderInitials = FOUNDER_KEYS[userInput];
 
-          // Determine upload type based on active filter toggles
           if (filterShowText && !filterShowImages) {
             handleTextOrLinkUpload();
           } else if (filterShowImages && !filterShowText) {
             myWidget.open();
           } else {
             const choice = prompt("SELECT UPLOAD TYPE:\n1 = IMAGE\n2 = TEXT NOTE / LINK", "1");
-            if (choice === "1") {
-              myWidget.open();
-            } else if (choice === "2") {
-              handleTextOrLinkUpload();
-            }
+            if (choice === "1") myWidget.open();
+            else if (choice === "2") handleTextOrLinkUpload();
           }
         });
       }
@@ -693,7 +619,6 @@
         if (entryType === "1") {
           const urlInput = prompt("ENTER FULL URL (e.g. https://example.com):");
           if (!urlInput || urlInput.trim() === "") return;
-          
           const noteInput = prompt("ENTER BRIEF NOTE OR CAPTION (OPTIONAL):", "REFERENCE LINK");
           
           db.collection("posts").add({
@@ -707,7 +632,6 @@
         } else if (entryType === "2") {
           const textInput = prompt("ENTER YOUR TEXT NOTE OR EXCERPT:");
           if (!textInput || textInput.trim() === "") return;
-
           const captionInput = prompt("ENTER A 2-3 WORD DESCRIPTION:", "NOTE");
 
           db.collection("posts").add({
