@@ -30,7 +30,7 @@
       <p class="text-neutral-400">RESEARCH ARCHIVE</p>
     </div>
     <div class="flex items-center space-x-4">
-      <button id="upload_widget" class="bg-black text-white px-3 py-1 text-[9px] hover:bg-neutral-800 transition-colors uppercase">
+      <button id="upload_widget" class="bg-black text-white px-3 py-1 text-[9px] hover:bg-neutral-800 transition-colors uppercase cursor-pointer">
         + UPLOAD ENTRY
       </button>
       <span class="text-neutral-500">[INDEX]</span>
@@ -55,29 +55,41 @@
       const UPLOAD_PRESET = "terminus_preset";
       const ADMIN_PASSCODE = "Glendale";
 
-      // 2. PASTE YOUR FIREBASE KEYS HERE
+      // 2. YOUR FIREBASE CONFIG
       const firebaseConfig = {
-        apiKey: "AIzaSyABHPBsfb7wLblLsipwidq4oQqrLdiUrho",
+        apiKey: "AIzaSyABHPbsfb7wLbLsipwidq4oQqrLdiUrho",
         authDomain: "terminus-projects-llc.firebaseapp.com",
         projectId: "terminus-projects-llc",
         storageBucket: "terminus-projects-llc.firebasestorage.app",
         messagingSenderId: "132476018158",
-        appId: "1:132476018158:web:f47cc816139b3f403742ff"
+        appId: "1:132476018158:web:f47cc816139b3f403742ff",
+        measurementId: "G-4ZSN6M7NG1"
       };
 
       // Initialize Firebase & Firestore
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
 
-      // 3. CARD TEMPLATE RENDERER
-      function renderCard(imageUrl, entryNum) {
+      // 3. CARD TEMPLATE RENDERER WITH SUBTLE X BUTTON
+      function renderCard(docId, imageUrl, entryNum) {
         return `
           <article class="relative bg-white border border-neutral-300 p-8 sm:p-12 min-h-[75vh] flex flex-col justify-between shadow-sm">
+            <!-- Top Bar -->
             <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase font-mono">
               <span>TERMINUS ©</span>
-              <span>${entryNum} / 333</span>
+              <div class="flex items-center space-x-2">
+                <span>${entryNum} / 333</span>
+                ${docId ? `
+                  <button 
+                    onclick="deleteCard('${docId}')" 
+                    class="text-neutral-300 hover:text-black transition-colors cursor-pointer text-[10px] leading-none px-1" 
+                    title="Delete Entry"
+                  >✕</button>
+                ` : ''}
+              </div>
             </div>
 
+            <!-- Image Subject -->
             <div class="relative my-auto py-8 flex justify-center items-center">
               <div class="absolute right-0 top-1/2 -translate-y-1/2 writing-vertical text-[8px] tracking-widest text-neutral-400 uppercase font-mono select-none pointer-events-none">
                 PROTOTYPE DEPICTED. SUBJECT TO CHANGE.
@@ -89,6 +101,7 @@
               >
             </div>
 
+            <!-- Bottom Bar -->
             <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase font-mono">
               <span>LOOK ${entryNum}</span>
               <span>TRMNS</span>
@@ -97,25 +110,40 @@
         `;
       }
 
-      // 4. AUTOMATICALLY LOAD & DISPLAY ALL SAVED SLIDES
+      // GLOBAL DELETE FUNCTION
+      window.deleteCard = function(docId) {
+        const userInput = prompt("ENTER ACCESS KEY TO DELETE:");
+        if (userInput === ADMIN_PASSCODE) {
+          if (confirm("Permanently delete this research card?")) {
+            db.collection("posts").doc(docId).delete().catch((error) => {
+              alert("Error deleting card: " + error.message);
+            });
+          }
+        } else if (userInput !== null) {
+          alert("ACCESS DENIED: INVALID KEY");
+        }
+      };
+
+      // 4. LOAD & DISPLAY SAVED CARDS FROM FIREBASE
       db.collection("posts").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         const feedContainer = document.getElementById("archive-feed");
         feedContainer.innerHTML = ""; 
 
         if (snapshot.empty) {
-          feedContainer.innerHTML = renderCard("https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "001");
+          feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "001");
           return;
         }
 
         let totalDocs = snapshot.docs.length;
         snapshot.docs.forEach((doc, index) => {
           const data = doc.data();
+          const docId = doc.id;
           const entryNum = String(totalDocs - index).padStart(3, '0');
-          feedContainer.insertAdjacentHTML("beforeend", renderCard(data.imageUrl, entryNum));
+          feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum));
         });
       });
 
-      // 5. CLOUDINARY UPLOAD & PERMANENT DATABASE SAVE
+      // 5. CLOUDINARY UPLOAD HANDLER
       const myWidget = cloudinary.createUploadWidget({
         cloudName: CLOUD_NAME,
         uploadPreset: UPLOAD_PRESET,
@@ -125,8 +153,6 @@
       }, (error, result) => { 
         if (!error && result && result.event === "success") {
           const uploadedUrl = result.info.secure_url;
-          
-          // Save permanently to Firebase database
           db.collection("posts").add({
             imageUrl: uploadedUrl,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -134,7 +160,7 @@
         }
       });
 
-      // Passcode Prompt Handler
+      // Passcode Handler for Upload
       const uploadBtn = document.getElementById("upload_widget");
       if (uploadBtn) {
         uploadBtn.addEventListener("click", function(){
