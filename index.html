@@ -6,9 +6,10 @@
   <title>TERMINUS.DIRECTORY</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Cloudinary Upload Widget Script -->
+  <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
   <style>
     body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    /* Vertical text writing mode */
     .writing-vertical {
       writing-mode: vertical-rl;
       transform: rotate(180deg);
@@ -17,36 +18,35 @@
 </head>
 <body class="bg-neutral-100 text-black antialiased min-h-screen p-4 md:p-12">
 
-  <!-- Minimal Header -->
+  <!-- Header -->
   <header class="flex justify-between items-center border-b border-neutral-300 pb-4 mb-8 text-[11px] tracking-widest uppercase">
     <div>
       <h1 class="font-bold tracking-tight">TERMINUS.DIRECTORY</h1>
       <p class="text-neutral-400">RESEARCH ARCHIVE</p>
     </div>
-    <div class="text-neutral-500">
-      <span>[INDEX]</span>
+    <div class="flex items-center space-x-4">
+      <!-- Upload Trigger Button -->
+      <button id="upload_widget" class="bg-black text-white px-3 py-1 text-[9px] hover:bg-neutral-800 transition-colors uppercase">
+        + UPLOAD ENTRY
+      </button>
+      <span class="text-neutral-500">[INDEX]</span>
     </div>
   </header>
 
-  <!-- Feed / Grid Container -->
-  <main class="max-w-4xl mx-auto space-y-12">
+  <!-- Feed Container -->
+  <main id="archive-feed" class="max-w-4xl mx-auto space-y-12">
     
-    <!-- YZY Style Research Card 1 -->
+    <!-- YZY Style Research Card Sample -->
     <article class="relative bg-white border border-neutral-300 p-8 sm:p-12 min-h-[75vh] flex flex-col justify-between shadow-sm">
-      
-      <!-- Top Bar inside Card -->
       <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase font-mono">
-        <span>TERMINUS PROJECTS LLC ©</span>
+        <span>TERMINUS ©</span>
         <span>001 / 333</span>
       </div>
 
-      <!-- Main Centered Visual -->
       <div class="relative my-auto py-8 flex justify-center items-center">
-        <!-- Rotated Vertical Fine Print (Right Side) -->
         <div class="absolute right-0 top-1/2 -translate-y-1/2 writing-vertical text-[8px] tracking-widest text-neutral-400 uppercase font-mono select-none pointer-events-none">
           PROTOTYPE DEPICTED. SUBJECT TO CHANGE.
         </div>
-
         <img 
           src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80" 
           alt="Research Item" 
@@ -54,48 +54,102 @@
         >
       </div>
 
-      <!-- Bottom Bar inside Card -->
       <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase font-mono">
         <span>LOOK 01</span>
         <span>TRMNS</span>
       </div>
-
-    </article>
-
-    <!-- YZY Style Research Card 2 -->
-    <article class="relative bg-white border border-neutral-300 p-8 sm:p-12 min-h-[75vh] flex flex-col justify-between shadow-sm">
-      
-      <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase font-mono">
-        <span>TERMINUS PROJECTS LLC ©</span>
-        <span>002 / 333</span>
-      </div>
-
-      <div class="relative my-auto py-8 flex justify-center items-center">
-        <div class="absolute right-0 top-1/2 -translate-y-1/2 writing-vertical text-[8px] tracking-widest text-neutral-400 uppercase font-mono select-none pointer-events-none">
-          PROTOTYPE DEPICTED. SUBJECT TO CHANGE.
-        </div>
-
-        <img 
-          src="https://images.unsplash.com/photo-1507652313519-d4e9174996dd?auto=format&fit=crop&w=800&q=80" 
-          alt="Research Item" 
-          class="max-h-[50vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300"
-        >
-      </div>
-
-      <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase font-mono">
-        <span>LOOK 02</span>
-        <span>TRMNS</span>
-      </div>
-
     </article>
 
   </main>
 
-  <!-- Footer -->
   <footer class="mt-16 pt-6 border-t border-neutral-300 text-neutral-400 text-[10px] flex justify-between font-mono">
     <p>&copy; TERMINUS.DIRECTORY</p>
     <p>ALL RIGHTS RESERVED.</p>
   </footer>
+
+  <!-- Script to Handle Password Check and Cloudinary Widget -->
+  <script type="text/javascript">
+    // -------------------------------------------------------------
+    // CONFIGURATION SETUP
+    // -------------------------------------------------------------
+    const CLOUD_NAME = nh2yb4q3;       // Replace with your Cloud Name
+    const UPLOAD_PRESET = terminus_preset; // Replace with your Unsigned Preset Name
+    const ADMIN_PASSCODE = Glendale;     // Set your secret team passcode here
+    // -------------------------------------------------------------
+
+    let itemCount = 1;
+
+    // Initialize Cloudinary Widget
+    const myWidget = cloudinary.createUploadWidget({
+      cloudName: CLOUD_NAME,
+      uploadPreset: UPLOAD_PRESET,
+      sources: ['local', 'url', 'camera'],
+      multiple: false,
+      maxFiles: 1,
+      styles: {
+        palette: {
+          window: "#FFFFFF",
+          windowBorder: "#909090",
+          tabIcon: "#000000",
+          menuIcon: "#5A5A5A",
+          textDark: "#000000",
+          textLight: "#FFFFFF",
+          link: "#000000",
+          action: "#000000",
+          inactiveTabIcon: "#CCCCCC",
+          error: "#F44236",
+          inProgress: "#000000",
+          complete: "#20B832",
+          sourceBg: "#FAFAFA"
+        }
+      }
+    }, (error, result) => { 
+      if (!error && result && result.event === "success") {
+        itemCount++;
+        const imageUrl = result.info.secure_url;
+        const entryNum = String(itemCount).padStart(3, '0');
+
+        // Render newly uploaded image into a YZY research card at top of feed
+        const newCardHTML = `
+          <article class="relative bg-white border border-neutral-300 p-8 sm:p-12 min-h-[75vh] flex flex-col justify-between shadow-sm">
+            <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase font-mono">
+              <span>TERMINUS ©</span>
+              <span>${entryNum} / 333</span>
+            </div>
+
+            <div class="relative my-auto py-8 flex justify-center items-center">
+              <div class="absolute right-0 top-1/2 -translate-y-1/2 writing-vertical text-[8px] tracking-widest text-neutral-400 uppercase font-mono select-none pointer-events-none">
+                PROTOTYPE DEPICTED. SUBJECT TO CHANGE.
+              </div>
+              <img 
+                src="${imageUrl}" 
+                alt="Uploaded Research Item" 
+                class="max-h-[50vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300"
+              >
+            </div>
+
+            <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase font-mono">
+              <span>LOOK ${entryNum}</span>
+              <span>TRMNS</span>
+            </div>
+          </article>
+        `;
+
+        document.getElementById("archive-feed").insertAdjacentHTML('afterbegin', newCardHTML);
+      }
+    });
+
+    // Password Verification Event
+    document.getElementById("upload_widget").addEventListener("click", function(){
+      const userInput = prompt("ENTER ACCESS KEY:");
+      
+      if (userInput === ADMIN_PASSCODE) {
+        myWidget.open();
+      } else if (userInput !== null) {
+        alert("ACCESS DENIED: INVALID KEY");
+      }
+    }, false);
+  </script>
 
 </body>
 </html>
