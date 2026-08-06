@@ -23,9 +23,9 @@
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 32px;
-      pointer-events: none; /* Keeps all image hovers and buttons clickable */
-      z-index: 40; /* Positioned above images to eliminate background gaps */
+      width: 32px; /* Total width of the stitch line bundle */
+      pointer-events: none; /* Allows clicks to pass through to buttons/images below */
+      z-index: 10;
       background-image: repeating-linear-gradient(
         90deg,
         #d4d4d4 0px,
@@ -116,7 +116,7 @@
               <img 
                 src="${imageUrl}" 
                 alt="Research Item" 
-                class="max-h-[60vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 relative z-10"
+                class="max-h-[60vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 relative z-30"
               >
             </div>
 
