@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERMINUS.DIRECTORY</title>
+  <!-- Tailwind CSS CDN for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  </style>
+</head>
+<body class="bg-black text-white antialiased min-h-screen px-4 py-8 md:px-12">
+
+  <!-- Header -->
+  <header class="flex justify-between items-center border-b border-neutral-800 pb-4 mb-8 text-xs tracking-widest uppercase">
+    <div>
+      <h1 class="font-bold text-sm tracking-tighter">TERMINUS.DIRECTORY</h1>
+      <p class="text-neutral-500">Visual Archive</p>
+    </div>
+    <div class="text-neutral-400">
+      <span>[INDEX]</span>
+    </div>
+  </header>
+
+  <!-- Image Grid -->
+  <main class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    
+    <!-- Image Item 1 -->
+    <article class="group relative flex flex-col space-y-2 border border-neutral-900 bg-neutral-950 p-2 hover:border-neutral-700 transition-colors">
+      <div class="overflow-hidden bg-neutral-900 aspect-square">
+        <img 
+          src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80" 
+          alt="Architecture" 
+          class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300 group-hover:scale-105"
+        >
+      </div>
+      <div class="flex justify-between items-center text-[10px] text-neutral-400 font-mono pt-1">
+        <span>Concrete Study</span>
+        <span class="text-neutral-600">#001</span>
+      </div>
+    </article>
+
+    <!-- Image Item 2 -->
+    <article class="group relative flex flex-col space-y-2 border border-neutral-900 bg-neutral-950 p-2 hover:border-neutral-700 transition-colors">
+      <div class="overflow-hidden bg-neutral-900 aspect-square">
+        <img 
+          src="https://images.unsplash.com/photo-1507652313519-d4e9174996dd?auto=format&fit=crop&w=800&q=80" 
+          alt="Design" 
+          class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300 group-hover:scale-105"
+        >
+      </div>
+      <div class="flex justify-between items-center text-[10px] text-neutral-400 font-mono pt-1">
+        <span>Object Form</span>
+        <span class="text-neutral-600">#002</span>
+      </div>
+    </article>
+
+    <!-- Image Item 3 -->
+    <article class="group relative flex flex-col space-y-2 border border-neutral-900 bg-neutral-950 p-2 hover:border-neutral-700 transition-colors">
+      <div class="overflow-hidden bg-neutral-900 aspect-square">
+        <img 
+          src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80" 
+          alt="Structure" 
+          class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300 group-hover:scale-105"
+        >
+      </div>
+      <div class="flex justify-between items-center text-[10px] text-neutral-400 font-mono pt-1">
+        <span>Monochrome Grid</span>
+        <span class="text-neutral-600">#003</span>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-16 pt-6 border-t border-neutral-800 text-neutral-600 text-[11px] flex justify-between">
+    <p>&copy; TERMINUS.DIRECTORY</p>
+    <p>ALL RIGHTS RESERVED.</p>
+  </footer>
+
+</body>
+</html>
