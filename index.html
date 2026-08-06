@@ -166,8 +166,8 @@
       }
       updateSavedBadge();
 
-      // 3. SEAMLESS SLIDE TEMPLATE RENDERER WITH EXPAND TRIGGER
-      function renderCard(docId, imageUrl, entryNum) {
+      // 3. SEAMLESS SLIDE TEMPLATE RENDERER WITH DYNAMIC CAPTION
+      function renderCard(docId, imageUrl, entryNum, captionText = "RESEARCH ENTRY") {
         const isSaved = docId && savedIds.includes(docId);
 
         return `
@@ -221,9 +221,9 @@
                 ` : ''}
               </div>
 
-              <!-- Bottom Right: Brand Tag -->
+              <!-- Bottom Right: Dynamic 2-3 Word Caption -->
               <div>
-                <span>TRMNS</span>
+                <span>${captionText}</span>
               </div>
             </div>
           </article>
@@ -314,7 +314,7 @@
               </div>
             `;
           } else {
-            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "1");
+            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "1", "LOOK 01 ARCHIVE");
           }
           return;
         }
@@ -325,7 +325,8 @@
           const docId = doc.id;
           const indexInAll = allDocs.findIndex(d => d.id === docId);
           const entryNum = totalDocs - indexInAll;
-          feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum));
+          const captionText = data.caption || "RESEARCH ENTRY";
+          feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum, captionText));
         });
       }
 
@@ -335,7 +336,7 @@
         renderFeed();
       });
 
-      // 5. CLOUDINARY UPLOAD HANDLER
+      // 5. CLOUDINARY UPLOAD HANDLER WITH CAPTION PROMPT
       const myWidget = cloudinary.createUploadWidget({
         cloudName: CLOUD_NAME,
         uploadPreset: UPLOAD_PRESET,
@@ -345,8 +346,14 @@
       }, (error, result) => { 
         if (!error && result && result.event === "success") {
           const uploadedUrl = result.info.secure_url;
+          
+          // Prompt uploader for a 2-3 word caption
+          const userCaption = prompt("ENTER A 2-3 WORD DESCRIPTION FOR THIS ENTRY:", "RAW SILHOUETTE DETAIL");
+          const finalCaption = (userCaption && userCaption.trim() !== "") ? userCaption.trim().toUpperCase() : "RESEARCH ENTRY";
+
           db.collection("posts").add({
             imageUrl: uploadedUrl,
+            caption: finalCaption,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         }
