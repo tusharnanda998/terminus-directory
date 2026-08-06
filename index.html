@@ -17,7 +17,7 @@
     body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
 
     /* Vertical 9-Stitch Needling Overlay */
-    .stitch-overlay {
+    .stitch-overlay-vertical {
       position: fixed;
       top: 0;
       bottom: 0;
@@ -25,9 +25,24 @@
       transform: translateX(-50%);
       width: 32px;
       pointer-events: none;
-      z-index: 5; /* Positioned behind the images */
+      z-index: 5; /* Behind images */
       background-image: repeating-linear-gradient(
         90deg,
+        #d4d4d4 0px,
+        #d4d4d4 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      opacity: 0.85;
+    }
+
+    /* Horizontal 9-Stitch Needling Divider */
+    .stitch-overlay-horizontal {
+      width: 100%;
+      height: 32px;
+      pointer-events: none;
+      background-image: repeating-linear-gradient(
+        0deg,
         #d4d4d4 0px,
         #d4d4d4 1px,
         transparent 1px,
@@ -39,8 +54,8 @@
 </head>
 <body class="bg-white text-black antialiased min-h-screen p-4 md:p-12 relative">
 
-  <!-- 9-Line Stitch Needling Overlay -->
-  <div class="stitch-overlay"></div>
+  <!-- Continuous Vertical 9-Line Stitch Needling Overlay -->
+  <div class="stitch-overlay-vertical"></div>
 
   <!-- Header -->
   <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-sm flex justify-between items-center border-b border-neutral-200 pb-4 mb-8 text-[11px] tracking-widest uppercase">
@@ -59,7 +74,7 @@
   </header>
 
   <!-- Seamless Feed Container -->
-  <main id="archive-feed" class="max-w-4xl mx-auto divide-y divide-neutral-200 relative z-20">
+  <main id="archive-feed" class="max-w-4xl mx-auto relative z-20">
     <!-- Dynamic slides load here automatically -->
   </main>
 
@@ -121,64 +136,69 @@
       }
       updateSavedBadge();
 
-      // 3. SEAMLESS SLIDE TEMPLATE RENDERER WITH EXPAND TRIGGER
-      function renderCard(docId, imageUrl, entryNum) {
+      // 3. SEAMLESS SLIDE TEMPLATE RENDERER WITH HORIZONTAL STITCH BREAK
+      function renderCard(docId, imageUrl, entryNum, isFirst = false) {
         const isSaved = docId && savedIds.includes(docId);
 
         return `
-          <article class="py-12 md:py-20 min-h-[85vh] flex flex-col justify-between">
-            <!-- Top Bar -->
-            <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase font-mono">
-              <span>TERMINUS PROJECTS LLC ©</span>
-              <span>${entryNum} / 999</span>
-            </div>
+          <article class="relative">
+            <!-- Horizontal 9-Stitch Divider on breaks (omitted for the very top item) -->
+            ${!isFirst ? `<div class="stitch-overlay-horizontal my-4"></div>` : ''}
 
-            <!-- Image Subject -->
-            <div class="relative my-auto py-8 flex justify-center items-center">
-              <img 
-                src="${imageUrl}" 
-                alt="Research Item" 
-                onclick="openLightbox('${imageUrl}')"
-                class="max-h-[60vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 relative z-20 cursor-zoom-in bg-white"
-              >
-            </div>
-
-            <!-- Bottom Bar -->
-            <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase font-mono">
-              <!-- Bottom Left: Compact Action Icons -->
-              <div class="flex items-center space-x-2.5">
-                ${docId ? `
-                  <button 
-                    onclick="toggleSave('${docId}')" 
-                    class="${isSaved ? 'text-black' : 'text-neutral-500 hover:text-black'} transition-colors cursor-pointer flex items-center justify-center"
-                    title="${isSaved ? 'Remove Bookmark' : 'Save Entry'}"
-                  >
-                    ${isSaved ? `
-                      <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24">
-                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                      </svg>
-                    ` : `
-                      <svg class="w-3 h-3 fill-none stroke-current" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                      </svg>
-                    `}
-                  </button>
-                  <button 
-                    onclick="deleteCard('${docId}')" 
-                    class="text-neutral-500 hover:text-black transition-colors cursor-pointer flex items-center justify-center" 
-                    title="Delete Entry"
-                  >
-                    <svg class="w-3 h-3 fill-none stroke-current" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                ` : ''}
+            <div class="py-12 md:py-20 min-h-[85vh] flex flex-col justify-between">
+              <!-- Top Bar -->
+              <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase font-mono">
+                <span>TERMINUS PROJECTS LLC ©</span>
+                <span>${entryNum} / 999</span>
               </div>
 
-              <!-- Bottom Right: Brand Tag -->
-              <div>
-                <span>TRMNS</span>
+              <!-- Image Subject -->
+              <div class="relative my-auto py-8 flex justify-center items-center">
+                <img 
+                  src="${imageUrl}" 
+                  alt="Research Item" 
+                  onclick="openLightbox('${imageUrl}')"
+                  class="max-h-[60vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 relative z-20 cursor-zoom-in bg-white"
+                >
+              </div>
+
+              <!-- Bottom Bar -->
+              <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase font-mono">
+                <!-- Bottom Left: Compact Action Icons -->
+                <div class="flex items-center space-x-2.5">
+                  ${docId ? `
+                    <button 
+                      onclick="toggleSave('${docId}')" 
+                      class="${isSaved ? 'text-black' : 'text-neutral-500 hover:text-black'} transition-colors cursor-pointer flex items-center justify-center"
+                      title="${isSaved ? 'Remove Bookmark' : 'Save Entry'}"
+                    >
+                      ${isSaved ? `
+                        <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                        </svg>
+                      ` : `
+                        <svg class="w-3 h-3 fill-none stroke-current" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                      `}
+                    </button>
+                    <button 
+                      onclick="deleteCard('${docId}')" 
+                      class="text-neutral-500 hover:text-black transition-colors cursor-pointer flex items-center justify-center" 
+                      title="Delete Entry"
+                    >
+                      <svg class="w-3 h-3 fill-none stroke-current" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  ` : ''}
+                </div>
+
+                <!-- Bottom Right: Brand Tag -->
+                <div>
+                  <span>TRMNS</span>
+                </div>
               </div>
             </div>
           </article>
@@ -269,18 +289,19 @@
               </div>
             `;
           } else {
-            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "1");
+            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "1", true);
           }
           return;
         }
 
         let totalDocs = allDocs.length;
-        docsToRender.forEach((doc) => {
+        docsToRender.forEach((doc, idx) => {
           const data = doc.data();
           const docId = doc.id;
           const indexInAll = allDocs.findIndex(d => d.id === docId);
           const entryNum = totalDocs - indexInAll;
-          feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum));
+          const isFirst = idx === 0;
+          feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum, isFirst));
         });
       }
 
