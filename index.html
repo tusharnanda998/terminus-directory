@@ -15,10 +15,6 @@
 
   <style>
     body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    .writing-vertical {
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-    }
   </style>
 </head>
 <body class="bg-neutral-100 text-black antialiased min-h-screen p-4 md:p-12">
@@ -26,8 +22,7 @@
   <!-- Header -->
   <header class="flex justify-between items-center border-b border-neutral-300 pb-4 mb-8 text-[11px] tracking-widest uppercase">
     <div>
-      <h1 class="font-bold tracking-tight">TERMINUS.DIRECTORY</h1>
-      <p class="text-neutral-400">RESEARCH ARCHIVE</p>
+      <!-- Left side header title removed per creative direction -->
     </div>
     <div class="flex items-center space-x-4">
       <button id="upload_widget" class="bg-black text-white px-3 py-1 text-[9px] hover:bg-neutral-800 transition-colors uppercase cursor-pointer">
@@ -83,7 +78,7 @@
       }
       updateSavedBadge();
 
-      // 3. CARD TEMPLATE RENDERER WITH SUBTLE STAR TOGGLE
+      // 3. CARD TEMPLATE RENDERER
       function renderCard(docId, imageUrl, entryNum) {
         const isSaved = docId && savedIds.includes(docId);
 
@@ -91,7 +86,7 @@
           <article class="relative bg-white border border-neutral-300 p-8 sm:p-12 min-h-[75vh] flex flex-col justify-between shadow-sm">
             <!-- Top Bar -->
             <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase font-mono">
-              <span>TERMINUS PROJECTS LLC ©</span>
+              <span>TERMINUS ©</span>
               <div class="flex items-center space-x-3">
                 <span>${entryNum} / 333</span>
                 ${docId ? `
@@ -106,9 +101,6 @@
 
             <!-- Image Subject -->
             <div class="relative my-auto py-8 flex justify-center items-center">
-              <div class="absolute right-0 top-1/2 -translate-y-1/2 writing-vertical text-[8px] tracking-widest text-neutral-400 uppercase font-mono select-none pointer-events-none">
-                PROTOTYPE DEPICTED. SUBJECT TO CHANGE.
-              </div>
               <img 
                 src="${imageUrl}" 
                 alt="Research Item" 
@@ -116,9 +108,9 @@
               >
             </div>
 
-            <!-- Bottom Bar with Subtle Star Icon -->
+            <!-- Bottom Bar -->
             <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase font-mono">
-              <span>LOOK ${entryNum}</span>
+              <div></div>
               <div class="flex items-center space-x-3">
                 ${docId ? `
                   <button 
