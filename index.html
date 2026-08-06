@@ -309,12 +309,12 @@
             </div>
           `;
         } else if (data.type === "text") {
-          // Centered text snippet without quotes or white border box
+          // Centered text snippet with perfectly balanced vertical padding over the stitch line
           mainContent = `
             <div class="relative my-auto py-12 flex flex-col justify-center items-center text-center max-w-2xl mx-auto w-full z-20">
-              <p class="text-sm md:text-base text-black tracking-widest leading-relaxed uppercase whitespace-pre-line bg-white px-6 py-4 relative z-20">
+              <span class="inline-block bg-white px-6 py-4 text-sm md:text-base text-black tracking-widest leading-relaxed uppercase whitespace-pre-line relative z-20">
                 ${data.textContent}
-              </p>
+              </span>
             </div>
           `;
         } else {
@@ -491,9 +491,9 @@
 
           let bodyHTML = '';
           if (data.type === "link") {
-            bodyHTML = `<div class="my-auto py-8 text-center text-xs font-bold uppercase relative z-20"><span class="bg-white px-4 py-2 border border-neutral-200">${data.url}</span></div>`;
+            bodyHTML = `<div class="my-auto py-8 text-center text-xs font-bold uppercase relative z-20"><span class="bg-white px-6 py-4 border border-neutral-200">${data.url}</span></div>`;
           } else if (data.type === "text") {
-            bodyHTML = `<div class="my-auto py-8 text-center text-xs uppercase px-6 relative z-20"><span class="bg-white px-4 py-2 relative z-20">${data.textContent}</span></div>`;
+            bodyHTML = `<div class="my-auto py-8 text-center text-xs uppercase px-6 relative z-20"><span class="inline-block bg-white px-6 py-4 relative z-20">${data.textContent}</span></div>`;
           } else {
             bodyHTML = `
               <div class="my-auto py-2 flex justify-center items-center relative z-20" style="flex: 1; min-height: 0;">
