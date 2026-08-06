@@ -35,24 +35,24 @@
       font-family: 'Eurostile', sans-serif !important; 
     }
 
-    /* Vertical 9-Stitch Needling Overlay */
+    /* Vertical Fine 9-Stitch Needling Overlay */
     .stitch-overlay-vertical {
       position: fixed;
       top: 0;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 33px;
+      width: 18px;
       pointer-events: none;
       z-index: 5;
       background-image: repeating-linear-gradient(
         90deg,
-        #d4d4d4 0px,
-        #d4d4d4 1px,
+        #cccccc 0px,
+        #cccccc 1px,
         transparent 1px,
-        transparent 4px
+        transparent 2px
       );
-      opacity: 0.85;
+      opacity: 0.7;
     }
 
     /* Edge-to-Edge Horizontal 9-Stitch Needling */
@@ -62,20 +62,20 @@
       left: 50%;
       transform: translateX(-50%);
       width: 100vw;
-      height: 33px;
+      height: 18px;
       pointer-events: none;
       z-index: 10;
       background-image: repeating-linear-gradient(
         0deg,
-        #d4d4d4 0px,
-        #d4d4d4 1px,
+        #cccccc 0px,
+        #cccccc 1px,
         transparent 1px,
-        transparent 4px
+        transparent 2px
       );
-      opacity: 0.85;
+      opacity: 0.7;
     }
 
-    /* MOBILE & DESKTOP OPTIMIZED PRINT & PDF ENGINE */
+    /* PERFECTED MOBILE & DESKTOP PRINT ENGINE */
     @page {
       size: letter portrait;
       margin: 0;
@@ -101,43 +101,45 @@
         width: 100% !important;
       }
 
-      /* Fixed Inch-based dimensions prevent mobile browser zoom/overflow issues */
       .print-page {
-        width: 8.5in !important;
-        height: 11in !important;
-        max-width: 8.5in !important;
-        max-height: 11in !important;
-        margin: 0 auto !important;
-        padding: 0.5in !important;
+        width: 100% !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        padding: 0.4in !important;
         box-sizing: border-box !important;
         position: relative !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
-        page-break-after: always !important;
-        break-after: page !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         overflow: hidden !important;
       }
 
+      /* Apply page breaks only between entries, preventing blank end pages */
+      .print-page:not(:last-child) {
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+
+      /* Fine 9-Stitch Vertical Overlay for Print */
       .print-stitch-vertical {
         position: absolute !important;
         top: 0 !important;
         bottom: 0 !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
-        width: 33px !important;
+        width: 18px !important;
         pointer-events: none !important;
         z-index: 5 !important;
         background-image: repeating-linear-gradient(
           90deg,
-          #d4d4d4 0px,
-          #d4d4d4 1px,
+          #b3b3b3 0px,
+          #b3b3b3 1px,
           transparent 1px,
-          transparent 4px
+          transparent 2px
         ) !important;
-        opacity: 0.85 !important;
+        opacity: 0.65 !important;
       }
     }
 
@@ -148,7 +150,7 @@
 </head>
 <body class="bg-white text-black antialiased min-h-screen p-4 md:p-12 relative overflow-x-hidden">
 
-  <!-- Continuous Vertical 9-Line Stitch Needling Overlay -->
+  <!-- Continuous Vertical Fine 9-Line Stitch Needling Overlay -->
   <div class="stitch-overlay-vertical"></div>
 
   <!-- Header with Seamless Integrated Horizontal 9-Stitch Needling -->
@@ -421,11 +423,11 @@
                 <span>${formattedNum}</span>
               </div>
 
-              <div class="my-auto py-4 flex justify-center items-center relative z-20" style="height: 8.5in; max-height: 8.5in;">
+              <div class="my-auto py-2 flex justify-center items-center relative z-20" style="flex: 1; min-height: 0;">
                 <img 
                   src="${data.imageUrl}" 
                   alt="Research Item" 
-                  style="max-height: 8in; max-width: 6.5in; object-fit: contain; display: block; margin: 0 auto;"
+                  style="max-height: 100%; max-width: 100%; object-fit: contain; display: block; margin: 0 auto;"
                   crossorigin="anonymous"
                 >
               </div>
