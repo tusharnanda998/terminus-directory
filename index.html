@@ -15,9 +15,32 @@
 
   <style>
     body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+    /* Vertical 9-Stitch Needling Overlay */
+    .stitch-overlay {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px; /* Total width of the stitch line bundle */
+      pointer-events: none; /* Allows clicks to pass through to buttons/images below */
+      z-index: 10;
+      background-image: repeating-linear-gradient(
+        90deg,
+        #d4d4d4 0px,
+        #d4d4d4 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      opacity: 0.85;
+    }
   </style>
 </head>
-<body class="bg-white text-black antialiased min-h-screen p-4 md:p-12">
+<body class="bg-white text-black antialiased min-h-screen p-4 md:p-12 relative">
+
+  <!-- 9-Line Stitch Needling Overlay -->
+  <div class="stitch-overlay"></div>
 
   <!-- Header -->
   <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-sm flex justify-between items-center border-b border-neutral-200 pb-4 mb-8 text-[11px] tracking-widest uppercase">
@@ -34,11 +57,11 @@
   </header>
 
   <!-- Seamless Feed Container -->
-  <main id="archive-feed" class="max-w-4xl mx-auto divide-y divide-neutral-200">
+  <main id="archive-feed" class="max-w-4xl mx-auto divide-y divide-neutral-200 relative z-20">
     <!-- Dynamic slides load here automatically -->
   </main>
 
-  <footer class="mt-16 pt-6 border-t border-neutral-200 text-neutral-400 text-[10px] flex justify-between font-mono">
+  <footer class="mt-16 pt-6 border-t border-neutral-200 text-neutral-400 text-[10px] flex justify-between font-mono relative z-20">
     <p>&copy; TERMINUS.DIRECTORY</p>
     <p>ALL RIGHTS RESERVED.</p>
   </footer>
@@ -93,7 +116,7 @@
               <img 
                 src="${imageUrl}" 
                 alt="Research Item" 
-                class="max-h-[60vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300"
+                class="max-h-[60vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 relative z-30"
               >
             </div>
 
