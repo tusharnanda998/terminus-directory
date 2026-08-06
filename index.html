@@ -35,7 +35,7 @@
       font-family: 'Eurostile', sans-serif !important; 
     }
 
-    /* Vertical Fine 9-Stitch Needling Overlay (z-30 ensures uninterrupted flow behind header buttons) */
+    /* Vertical Fine 9-Stitch Needling Overlay (z-5 sits BEHIND images z-20) */
     .stitch-overlay-vertical {
       position: fixed;
       top: 0;
@@ -44,7 +44,7 @@
       transform: translateX(-50%);
       width: 18px;
       pointer-events: none;
-      z-index: 30;
+      z-index: 5;
       background-image: repeating-linear-gradient(
         90deg,
         #cccccc 0px,
@@ -75,7 +75,7 @@
       opacity: 0.7;
     }
 
-    /* PERFECTED MOBILE & DESKTOP PRINT ENGINE */
+    /* MOBILE & DESKTOP PRINT ENGINE */
     @page {
       size: letter portrait;
       margin: 0;
@@ -151,8 +151,8 @@
   <!-- Continuous Vertical Fine 9-Line Stitch Needling Overlay -->
   <div class="stitch-overlay-vertical"></div>
 
-  <!-- Header with Transparent Backdrop to Allow Vertical Needling Through -->
-  <header class="sticky top-0 z-40 bg-white/60 backdrop-blur-sm mb-8 text-[11px] tracking-widest uppercase relative h-[33px] flex items-center">
+  <!-- Header with Transparent Background so vertical lines flow through seamlessly -->
+  <header class="sticky top-0 z-40 bg-transparent mb-8 text-[11px] tracking-widest uppercase relative h-[33px] flex items-center">
     
     <!-- Full-Width Horizontal 9-Stitch Background Overlay in Header -->
     <div class="stitch-overlay-header-horizontal"></div>
@@ -167,9 +167,9 @@
 
       <!-- Right Side: Feed Filter Tabs + PDF Export Trigger -->
       <div class="flex items-center space-x-4">
-        <button id="tab-all" onclick="switchTab('all')" class="font-bold text-black cursor-pointer">INDEX</button>
-        <button id="tab-saved" onclick="switchTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer">SAVED (<span id="saved-count">0</span>)</button>
-        <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden text-black underline hover:text-neutral-600 transition-colors cursor-pointer text-[9px]">EXPORT PDF</button>
+        <button id="tab-all" onclick="switchTab('all')" class="font-bold text-black cursor-pointer bg-white px-1">INDEX</button>
+        <button id="tab-saved" onclick="switchTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer bg-white px-1">SAVED (<span id="saved-count">0</span>)</button>
+        <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden text-black underline hover:text-neutral-600 transition-colors cursor-pointer text-[9px] bg-white px-1">EXPORT PDF</button>
       </div>
     </div>
   </header>
@@ -179,7 +179,7 @@
     <!-- Dynamic slides load here automatically -->
   </main>
 
-  <footer class="mt-16 pt-6 border-t border-neutral-200 text-neutral-400 text-[10px] flex justify-between relative z-20">
+  <footer class="mt-16 pt-6 border-t border-neutral-200 text-neutral-400 text-[10px] flex justify-between relative z-20 bg-white">
     <p>&copy; TERMINUS.DIRECTORY</p>
     <p>ALL RIGHTS RESERVED.</p>
   </footer>
@@ -262,8 +262,8 @@
           <article class="py-12 md:py-20 min-h-[85vh] flex flex-col justify-between">
             <!-- Top Bar -->
             <div class="flex justify-between items-start text-[9px] tracking-widest text-neutral-500 uppercase">
-              <span>TERMINUS PROJECTS LLC ©</span>
-              <span>${formattedNum}</span>
+              <span class="bg-white px-1">TERMINUS PROJECTS LLC ©</span>
+              <span class="bg-white px-1">${formattedNum}</span>
             </div>
 
             <!-- Image Subject -->
@@ -280,7 +280,7 @@
             <!-- Bottom Bar -->
             <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase">
               <!-- Bottom Left: Action Icons -->
-              <div class="flex items-center space-x-2.5">
+              <div class="flex items-center space-x-2.5 bg-white px-1">
                 ${docId ? `
                   <button 
                     onclick="toggleSave('${docId}')" 
@@ -311,7 +311,7 @@
               </div>
 
               <!-- Bottom Right: Caption | Initials -->
-              <div>
+              <div class="bg-white px-1">
                 <span>${metaLine}</span>
               </div>
             </div>
@@ -360,12 +360,12 @@
         const exportBtn = document.getElementById("export-pdf-btn");
 
         if (tab === "all") {
-          allBtn.className = "font-bold text-black cursor-pointer";
-          savedBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
+          allBtn.className = "font-bold text-black cursor-pointer bg-white px-1";
+          savedBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer bg-white px-1";
           exportBtn.classList.add("hidden");
         } else {
-          savedBtn.className = "font-bold text-black cursor-pointer";
-          allBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
+          savedBtn.className = "font-bold text-black cursor-pointer bg-white px-1";
+          allBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer bg-white px-1";
           if (savedIds.length > 0) {
             exportBtn.classList.remove("hidden");
           } else {
@@ -417,8 +417,8 @@
               <div class="print-stitch-vertical"></div>
 
               <div class="flex justify-between items-start text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
-                <span>TERMINUS PROJECTS LLC ©</span>
-                <span>${formattedNum}</span>
+                <span class="bg-white px-1">TERMINUS PROJECTS LLC ©</span>
+                <span class="bg-white px-1">${formattedNum}</span>
               </div>
 
               <div class="my-auto py-2 flex justify-center items-center relative z-20" style="flex: 1; min-height: 0;">
@@ -426,13 +426,14 @@
                   src="${data.imageUrl}" 
                   alt="Research Item" 
                   style="max-height: 100%; max-width: 100%; object-fit: contain; display: block; margin: 0 auto;"
+                  class="bg-white"
                   crossorigin="anonymous"
                 >
               </div>
 
               <div class="flex justify-between items-end text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
-                <span>TRMNS</span>
-                <span>${metaLine}</span>
+                <span class="bg-white px-1">TRMNS</span>
+                <span class="bg-white px-1">${metaLine}</span>
               </div>
             </div>
           `;
