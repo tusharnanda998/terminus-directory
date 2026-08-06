@@ -99,19 +99,19 @@
 
             <!-- Bottom Bar -->
             <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase font-mono">
-              <!-- Bottom Left: Save & Delete Actions -->
-              <div class="flex items-center space-x-3">
+              <!-- Bottom Left: Vertically Centered Save & Delete Actions -->
+              <div class="flex items-center space-x-2.5">
                 ${docId ? `
                   <button 
                     onclick="toggleSave('${docId}')" 
-                    class="${isSaved ? 'text-black font-bold' : 'text-neutral-300 hover:text-black'} transition-colors cursor-pointer text-[12px] leading-none"
+                    class="${isSaved ? 'text-black font-bold' : 'text-neutral-500 hover:text-black'} transition-colors cursor-pointer text-[12px] leading-none flex items-center justify-center"
                     title="${isSaved ? 'Remove Bookmark' : 'Save Entry'}"
                   >
                     ${isSaved ? '★' : '☆'}
                   </button>
                   <button 
                     onclick="deleteCard('${docId}')" 
-                    class="text-neutral-300 hover:text-black transition-colors cursor-pointer text-[10px] leading-none" 
+                    class="text-neutral-500 hover:text-black transition-colors cursor-pointer text-[11px] leading-none flex items-center justify-center" 
                     title="Delete Entry"
                   >✕</button>
                 ` : ''}
