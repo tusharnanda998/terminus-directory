@@ -151,13 +151,13 @@
   <!-- Continuous Vertical Fine 9-Line Stitch Needling Overlay -->
   <div class="stitch-overlay-vertical"></div>
 
-  <!-- Header Container -->
+  <!-- Header Container (Constrained and Centered to match max-w-4xl) -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm mb-2 text-[11px] tracking-widest uppercase relative h-[18px] flex items-center justify-center py-4">
     
     <!-- Full-Width Horizontal 9-Stitch Background Overlay in Header -->
     <div class="stitch-overlay-horizontal"></div>
 
-    <div class="max-w-4xl w-full flex justify-between items-center relative z-20 h-full px-4 md:px-0">
+    <div class="max-w-4xl mx-auto w-full flex justify-between items-center relative z-20 h-full px-4 md:px-0">
       <!-- Left Side: Dynamic Upload Trigger -->
       <div class="flex items-center h-full">
         <button id="upload_widget" class="bg-white text-black border border-neutral-300 px-2 py-0.5 text-[9px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-none flex items-center">
@@ -174,7 +174,7 @@
     </div>
   </header>
 
- <!-- INDEX SUB-NAV -->
+  <!-- INDEX SUB-NAV -->
   <div id="index-subnav" class="max-w-4xl mx-auto w-full relative z-20 mb-8 flex justify-end px-4 md:px-0">
     <div class="flex items-center space-x-2 text-[9px] tracking-widest uppercase">
       <button id="subtab-all" onclick="setIndexFilter('all')" class="font-bold text-black cursor-pointer">ALL</button>
@@ -186,12 +186,12 @@
   </div>
 
   <!-- Seamless Feed Container -->
-  <main id="archive-feed" class="max-w-4xl mx-auto divide-y divide-neutral-200 relative z-20">
+  <main id="archive-feed" class="max-w-4xl mx-auto divide-y divide-neutral-200 relative z-20 px-4 md:px-0">
     <!-- Dynamic slides load here automatically -->
   </main>
 
   <!-- Footer Layout -->
-  <footer class="mt-20 mb-8 text-[9px] tracking-widest uppercase relative z-20">
+  <footer class="max-w-4xl mx-auto mt-20 mb-8 text-[9px] tracking-widest uppercase relative z-20 px-4 md:px-0">
     <!-- Row 1: Aligned Centrally Over 18px Horizontal Stitch Band -->
     <div class="relative h-[18px] flex items-center justify-center">
       <!-- Full-Width Horizontal 9-Stitch Background Overlay in Footer -->
@@ -520,7 +520,6 @@
 
           let bodyHTML = '';
           if (data.type === "link") {
-            // Removed border box here
             bodyHTML = `<div class="my-auto py-8 text-center text-xs font-bold uppercase relative z-20"><span class="bg-white px-6 py-4">${data.url}</span></div>`;
           } else if (data.type === "text") {
             bodyHTML = `<div class="my-auto py-8 text-center text-xs uppercase px-6 relative z-20 flex justify-center"><span class="bg-white px-6 py-4 relative z-20">${data.textContent}</span></div>`;
@@ -549,7 +548,6 @@
 
               ${bodyHTML}
 
-              <!-- Removed TRMNS from bottom-left, leaving empty span or justifyContent space intact -->
               <div class="flex justify-end items-end text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
                 <span>${metaLine}</span>
               </div>
