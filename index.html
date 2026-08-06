@@ -300,19 +300,21 @@
 
         if (data.type === "link") {
           mainContent = `
-            <div class="relative my-auto py-12 flex flex-col justify-center items-center text-center bg-white p-8 max-w-xl mx-auto w-full z-20">
-              <span class="text-[9px] uppercase tracking-widest text-neutral-400 mb-2">EXTERNAL REFERENCE</span>
-              <a href="${data.url}" target="_blank" rel="noopener noreferrer" class="text-sm md:text-base font-bold text-black hover:underline break-all mb-4">
-                ${data.url}
-              </a>
-              ${data.note ? `<p class="text-[11px] text-neutral-600 tracking-wide uppercase">${data.note}</p>` : ''}
+            <div class="relative my-auto flex items-center justify-center text-center max-w-xl mx-auto w-full z-20">
+              <div class="bg-white px-8 py-6 relative z-20 flex flex-col items-center justify-center">
+                <span class="text-[9px] uppercase tracking-widest text-neutral-400 mb-2">EXTERNAL REFERENCE</span>
+                <a href="${data.url}" target="_blank" rel="noopener noreferrer" class="text-sm md:text-base font-bold text-black hover:underline break-all mb-2 leading-none">
+                  ${data.url}
+                </a>
+                ${data.note ? `<p class="text-[11px] text-neutral-600 tracking-wide uppercase leading-none mt-1">${data.note}</p>` : ''}
+              </div>
             </div>
           `;
         } else if (data.type === "text") {
-          // Perfectly symmetrical vertical & horizontal padding over vertical stitch
+          // Explicit pixel height block (h-12 / h-16) to ensure exact optical symmetry above and below the text
           mainContent = `
             <div class="relative my-auto flex items-center justify-center text-center max-w-2xl mx-auto w-full z-20">
-              <div class="bg-white px-8 py-6 relative z-20 flex items-center justify-center">
+              <div class="bg-white px-8 h-12 flex items-center justify-center relative z-20">
                 <p class="text-sm md:text-base text-black tracking-widest uppercase whitespace-pre-line leading-none">
                   ${data.textContent}
                 </p>
@@ -495,7 +497,7 @@
           if (data.type === "link") {
             bodyHTML = `<div class="my-auto py-8 text-center text-xs font-bold uppercase relative z-20"><span class="bg-white px-6 py-4 border border-neutral-200">${data.url}</span></div>`;
           } else if (data.type === "text") {
-            bodyHTML = `<div class="my-auto py-8 text-center text-xs uppercase px-6 relative z-20"><span class="inline-block bg-white px-8 py-6 relative z-20 leading-none">${data.textContent}</span></div>`;
+            bodyHTML = `<div class="my-auto py-8 text-center text-xs uppercase px-6 relative z-20 flex justify-center"><span class="bg-white px-8 h-12 flex items-center justify-center relative z-20 leading-none">${data.textContent}</span></div>`;
           } else {
             bodyHTML = `
               <div class="my-auto py-2 flex justify-center items-center relative z-20" style="flex: 1; min-height: 0;">
