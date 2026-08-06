@@ -17,7 +17,7 @@
     body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
 
     /* Vertical 9-Stitch Needling Overlay */
-    .stitch-overlay {
+    .stitch-overlay-vertical {
       position: fixed;
       top: 0;
       bottom: 0;
@@ -25,7 +25,7 @@
       transform: translateX(-50%);
       width: 32px;
       pointer-events: none;
-      z-index: 5; /* Positioned behind images */
+      z-index: 5; /* Positioned behind images and header text */
       background-image: repeating-linear-gradient(
         90deg,
         #d4d4d4 0px,
@@ -35,26 +35,48 @@
       );
       opacity: 0.85;
     }
+
+    /* Sticky Header Horizontal 9-Stitch Needling Pattern */
+    .stitch-overlay-header-horizontal {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      background-image: repeating-linear-gradient(
+        0deg,
+        #d4d4d4 0px,
+        #d4d4d4 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      opacity: 0.85;
+    }
   </style>
 </head>
-<body class="bg-white text-black antialiased min-h-screen p-4 md:p-12 relative">
+<body class="bg-white text-black antialiased min-h-screen p-4 md:p-12 relative overflow-x-hidden">
 
   <!-- Continuous Vertical 9-Line Stitch Needling Overlay -->
-  <div class="stitch-overlay"></div>
+  <div class="stitch-overlay-vertical"></div>
 
-  <!-- Header -->
-  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-sm flex justify-between items-center border-b border-neutral-200 pb-4 mb-8 text-[11px] tracking-widest uppercase">
-    <!-- Left Side: Upload Trigger -->
-    <div>
-      <button id="upload_widget" class="bg-black text-white px-3 py-1 text-[9px] hover:bg-neutral-800 transition-colors uppercase cursor-pointer">
-        + UPLOAD ENTRY
-      </button>
-    </div>
+  <!-- Header with Integrated Horizontal 9-Stitch Needling -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b border-neutral-200 py-4 mb-8 text-[11px] tracking-widest uppercase relative">
+    
+    <!-- Horizontal 9-Stitch Background Overlay in Header -->
+    <div class="stitch-overlay-header-horizontal"></div>
 
-    <!-- Right Side: Feed Filter Tabs -->
-    <div class="flex items-center space-x-4">
-      <button id="tab-all" onclick="switchTab('all')" class="font-bold text-black cursor-pointer">[INDEX]</button>
-      <button id="tab-saved" onclick="switchTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer">SAVED (<span id="saved-count">0</span>)</button>
+    <div class="flex justify-between items-center max-w-full relative z-20">
+      <!-- Left Side: Upload Trigger -->
+      <div>
+        <button id="upload_widget" class="bg-black text-white px-3 py-1 text-[9px] hover:bg-neutral-800 transition-colors uppercase cursor-pointer">
+          + UPLOAD ENTRY
+        </button>
+      </div>
+
+      <!-- Right Side: Feed Filter Tabs -->
+      <div class="flex items-center space-x-4">
+        <button id="tab-all" onclick="switchTab('all')" class="font-bold text-black cursor-pointer">[INDEX]</button>
+        <button id="tab-saved" onclick="switchTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer">SAVED (<span id="saved-count">0</span>)</button>
+      </div>
     </div>
   </header>
 
