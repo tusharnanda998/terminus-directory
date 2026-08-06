@@ -152,8 +152,8 @@
     <p>ALL RIGHTS RESERVED.</p>
   </footer>
 
-  <!-- Hidden Container used strictly for generating clean PDF export layout -->
-  <div id="pdf-export-stage" style="position: absolute; left: -9999px; top: -9999px;"></div>
+  <!-- Fixed Container Positioned Directly Under Current Viewport for Clean Canvas Rendering -->
+  <div id="pdf-export-stage" style="position: fixed; top: 0; left: 0; z-index: -9999; opacity: 0.01; pointer-events: none;"></div>
 
   <!-- Expanded Image Modal Lightbox -->
   <div 
@@ -360,12 +360,12 @@
         }
       };
 
-      // HIGH-PRECISION 1:1 PDF EXPORT ENGINE WITH STITCH OVERLAYS
+      // HIGH-PRECISION 1:1 PDF EXPORT ENGINE WITH VISIBLE STAGE CANVAS
       window.exportSavedPDF = async function() {
         if (savedIds.length === 0) return;
 
         const stage = document.getElementById("pdf-export-stage");
-        stage.innerHTML = ""; // Clear stage
+        stage.innerHTML = ""; 
 
         const docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
         const totalDocs = allDocs.length;
@@ -392,8 +392,8 @@
                 <span>${formattedNum}</span>
               </div>
 
-              <!-- Page Image Container (Auto-fitted, never cropped) -->
-              <div class="my-auto py-4 flex justify-center items-center relative z-20" style="max-height: 8.5in;">
+              <!-- Page Image Container -->
+              <div class="my-auto py-4 flex justify-center items-center relative z-20" style="height: 8.5in;">
                 <img 
                   src="${data.imageUrl}" 
                   alt="Research Item" 
@@ -412,7 +412,7 @@
           stage.insertAdjacentHTML("beforeend", pageHTML);
         });
 
-        // Ensure all images are fully loaded in the DOM stage before compiling PDF
+        // Ensure images are completely loaded in the stage
         const images = stage.querySelectorAll("img");
         const imagePromises = Array.from(images).map(img => {
           if (img.complete) return Promise.resolve();
@@ -423,7 +423,6 @@
         });
         await Promise.all(imagePromises);
 
-        // Configure PDF output with exact Letter Dimensions
         const opt = {
           margin:       0,
           filename:     'TERMINUS_SAVED_ARCHIVE.pdf',
@@ -432,7 +431,6 @@
           jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
-        // Render PDF and clean stage
         html2pdf().set(opt).from(stage).save().then(() => {
           stage.innerHTML = "";
         });
