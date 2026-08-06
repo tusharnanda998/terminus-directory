@@ -152,27 +152,37 @@
   <div class="stitch-overlay-vertical"></div>
 
   <!-- Header Perfectly Aligned Centrally Over 18px Horizontal Stitch Band -->
-  <header class="sticky top-0 z-40 bg-transparent mb-8 text-[11px] tracking-widest uppercase relative h-[18px] flex items-center justify-center">
+  <header class="sticky top-0 z-40 bg-transparent mb-6 text-[11px] tracking-widest uppercase relative h-[18px] flex items-center justify-center">
     
     <!-- Full-Width Horizontal 9-Stitch Background Overlay in Header -->
     <div class="stitch-overlay-horizontal"></div>
 
     <div class="flex justify-between items-center w-full relative z-20 h-full">
-      <!-- Left Side: Upload Trigger -->
+      <!-- Left Side: Dynamic Upload Trigger -->
       <div class="flex items-center h-full">
         <button id="upload_widget" class="bg-white text-black border border-neutral-300 px-2 py-0.5 text-[9px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-none flex items-center">
           + UPLOAD ENTRY
         </button>
       </div>
 
-      <!-- Right Side: Feed Filter Tabs + PDF Export Trigger -->
+      <!-- Right Side: Main Tabs + PDF Export Trigger -->
       <div class="flex items-center space-x-4 h-full leading-none">
-        <button id="tab-all" onclick="switchTab('all')" class="font-bold text-black cursor-pointer leading-none">INDEX</button>
-        <button id="tab-saved" onclick="switchTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none">SAVED (<span id="saved-count">0</span>)</button>
+        <button id="tab-all" onclick="switchMainTab('all')" class="font-bold text-black cursor-pointer leading-none">INDEX</button>
+        <button id="tab-saved" onclick="switchMainTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none">SAVED (<span id="saved-count">0</span>)</button>
         <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden text-black underline hover:text-neutral-600 transition-colors cursor-pointer text-[9px] leading-none">EXPORT PDF</button>
       </div>
     </div>
   </header>
+
+  <!-- INDEX SUB-NAV (Filter between Images, Text & Links, or All) -->
+  <div id="index-subnav" class="max-w-4xl mx-auto mb-8 flex justify-end items-center space-x-3 text-[9px] tracking-widest uppercase relative z-20">
+    <span class="text-neutral-300">FILTER:</span>
+    <button id="subtab-all" onclick="setIndexFilter('all')" class="font-bold text-black cursor-pointer">ALL</button>
+    <span class="text-neutral-300">/</span>
+    <button id="subtab-images" onclick="setIndexFilter('images')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer">IMAGES</button>
+    <span class="text-neutral-300">/</span>
+    <button id="subtab-text" onclick="setIndexFilter('text')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer">TEXT & LINKS</button>
+  </div>
 
   <!-- Seamless Feed Container -->
   <main id="archive-feed" class="max-w-4xl mx-auto divide-y divide-neutral-200 relative z-20">
@@ -240,20 +250,19 @@
       const CLOUD_NAME = "nh2yb4q3";
       const UPLOAD_PRESET = "terminus_preset";
 
-      // Founders Key Mapping (5 Passcodes -> 5 Signatures/Initials)
+      // Founders Key Mapping
       const FOUNDER_KEYS = {
         "TN": "TN",
         "MM": "MM",
         "TS": "TS",
         "JW": "Woods",
         "KJJ": "KJJ",
-        "Glendale": "TERMINUS TEAM" // Legacy fallback key
+        "Glendale": "TERMINUS TEAM"
       };
 
-      // Active uploader state
       let activeUploaderInitials = null;
 
-      // 2. YOUR FIREBASE CONFIG
+      // 2. FIREBASE CONFIG
       const firebaseConfig = {
         apiKey: "AIzaSyABHPbsfb7wLbLsipwidq4oQqrLdiUrho",
         authDomain: "terminus-projects-llc.firebaseapp.com",
@@ -264,13 +273,13 @@
         measurementId: "G-4ZSN6M7NG1"
       };
 
-      // Initialize Firebase & Firestore
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
 
       // State Management
       let allDocs = [];
-      let currentTab = "all"; 
+      let currentMainTab = "all"; // 'all' (Index), 'saved'
+      let indexFilter = "all";    // 'all', 'images', 'text'
       let savedIds = JSON.parse(localStorage.getItem("terminus_saved_cards") || "[]");
 
       function updateSavedBadge() {
@@ -278,11 +287,47 @@
       }
       updateSavedBadge();
 
-      // 3. SEAMLESS SLIDE TEMPLATE RENDERER
-      function renderCard(docId, imageUrl, entryNum, captionText = "RESEARCH", signature = "") {
+      // 3. SEAMLESS CARD RENDERER
+      function renderCard(docId, data, entryNum) {
         const isSaved = docId && savedIds.includes(docId);
+        const captionText = data.caption || "RESEARCH";
+        const signature = data.uploadedBy || "";
         const metaLine = signature ? `${captionText} | ${signature}` : captionText;
         const formattedNum = String(entryNum).padStart(3, '0');
+
+        let mainContent = '';
+
+        if (data.type === "link") {
+          mainContent = `
+            <div class="relative my-auto py-12 flex flex-col justify-center items-center text-center bg-neutral-50 border border-neutral-200 p-8 max-w-xl mx-auto w-full z-20">
+              <span class="text-[9px] uppercase tracking-widest text-neutral-400 mb-2">EXTERNAL REFERENCE</span>
+              <a href="${data.url}" target="_blank" rel="noopener noreferrer" class="text-sm md:text-base font-bold text-black hover:underline break-all mb-4">
+                ${data.url}
+              </a>
+              ${data.note ? `<p class="text-[11px] text-neutral-600 tracking-wide uppercase">${data.note}</p>` : ''}
+            </div>
+          `;
+        } else if (data.type === "text") {
+          mainContent = `
+            <div class="relative my-auto py-12 flex flex-col justify-center items-center text-center bg-white border border-neutral-200 p-8 max-w-2xl mx-auto w-full z-20">
+              <blockquote class="text-sm md:text-base text-black tracking-wide leading-relaxed uppercase whitespace-pre-line">
+                "${data.textContent}"
+              </blockquote>
+            </div>
+          `;
+        } else {
+          mainContent = `
+            <div class="relative my-auto py-8 flex justify-center items-center">
+              <img 
+                src="${data.imageUrl}" 
+                alt="Research Item" 
+                onclick="openLightbox('${data.imageUrl}')"
+                class="max-h-[60vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 relative z-20 cursor-zoom-in bg-white"
+                crossorigin="anonymous"
+              >
+            </div>
+          `;
+        }
 
         return `
           <article class="py-12 md:py-20 min-h-[85vh] flex flex-col justify-between">
@@ -292,16 +337,8 @@
               <span>${formattedNum}</span>
             </div>
 
-            <!-- Image Subject -->
-            <div class="relative my-auto py-8 flex justify-center items-center">
-              <img 
-                src="${imageUrl}" 
-                alt="Research Item" 
-                onclick="openLightbox('${imageUrl}')"
-                class="max-h-[60vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 relative z-20 cursor-zoom-in bg-white"
-                crossorigin="anonymous"
-              >
-            </div>
+            <!-- Subject -->
+            ${mainContent}
 
             <!-- Bottom Bar -->
             <div class="flex justify-between items-end text-[9px] tracking-widest text-neutral-400 uppercase">
@@ -361,9 +398,7 @@
       };
 
       document.addEventListener("keydown", function(e) {
-        if (e.key === "Escape") {
-          closeLightbox();
-        }
+        if (e.key === "Escape") closeLightbox();
       });
 
       // GLOBAL BOOKMARK TOGGLE
@@ -378,26 +413,42 @@
         renderFeed();
       };
 
-      // GLOBAL TAB SWITCHER
-      window.switchTab = function(tab) {
-        currentTab = tab;
+      // TAB CONTROLLERS
+      window.switchMainTab = function(tab) {
+        currentMainTab = tab;
         const allBtn = document.getElementById("tab-all");
         const savedBtn = document.getElementById("tab-saved");
         const exportBtn = document.getElementById("export-pdf-btn");
+        const subNav = document.getElementById("index-subnav");
 
         if (tab === "all") {
           allBtn.className = "font-bold text-black cursor-pointer leading-none";
           savedBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none";
           exportBtn.classList.add("hidden");
+          subNav.classList.remove("hidden");
         } else {
           savedBtn.className = "font-bold text-black cursor-pointer leading-none";
           allBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none";
-          if (savedIds.length > 0) {
-            exportBtn.classList.remove("hidden");
-          } else {
-            exportBtn.classList.add("hidden");
-          }
+          subNav.classList.add("hidden");
+          if (savedIds.length > 0) exportBtn.classList.remove("hidden");
         }
+        renderFeed();
+      };
+
+      window.setIndexFilter = function(filter) {
+        indexFilter = filter;
+        const subAll = document.getElementById("subtab-all");
+        const subImages = document.getElementById("subtab-images");
+        const subText = document.getElementById("subtab-text");
+
+        subAll.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
+        subImages.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
+        subText.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer";
+
+        if (filter === "all") subAll.className = "font-bold text-black cursor-pointer";
+        if (filter === "images") subImages.className = "font-bold text-black cursor-pointer";
+        if (filter === "text") subText.className = "font-bold text-black cursor-pointer";
+
         renderFeed();
       };
 
@@ -406,9 +457,7 @@
         const userInput = prompt("ENTER ACCESS KEY TO DELETE:");
         if (FOUNDER_KEYS[userInput]) {
           if (confirm("Permanently delete this research card?")) {
-            if (savedIds.includes(docId)) {
-              toggleSave(docId);
-            }
+            if (savedIds.includes(docId)) toggleSave(docId);
             db.collection("posts").doc(docId).delete().catch((error) => {
               alert("Error deleting card: " + error.message);
             });
@@ -418,7 +467,7 @@
         }
       };
 
-      // NATIVE BROWSER PRINT ENGINE FOR PDF EXPORT
+      // NATIVE PRINT ENGINE
       window.exportSavedPDF = async function() {
         if (savedIds.length === 0) return;
 
@@ -438,15 +487,13 @@
           const signature = data.uploadedBy || "";
           const metaLine = signature ? `${captionText} | ${signature}` : captionText;
 
-          const pageHTML = `
-            <div class="print-page">
-              <div class="print-stitch-vertical"></div>
-
-              <div class="flex justify-between items-start text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
-                <span>TERMINUS PROJECTS LLC ©</span>
-                <span>${formattedNum}</span>
-              </div>
-
+          let bodyHTML = '';
+          if (data.type === "link") {
+            bodyHTML = `<div class="my-auto py-8 text-center text-xs font-bold uppercase">${data.url}</div>`;
+          } else if (data.type === "text") {
+            bodyHTML = `<div class="my-auto py-8 text-center text-xs uppercase px-6">"${data.textContent}"</div>`;
+          } else {
+            bodyHTML = `
               <div class="my-auto py-2 flex justify-center items-center relative z-20" style="flex: 1; min-height: 0;">
                 <img 
                   src="${data.imageUrl}" 
@@ -456,6 +503,19 @@
                   crossorigin="anonymous"
                 >
               </div>
+            `;
+          }
+
+          const pageHTML = `
+            <div class="print-page">
+              <div class="print-stitch-vertical"></div>
+
+              <div class="flex justify-between items-start text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
+                <span>TERMINUS PROJECTS LLC ©</span>
+                <span>${formattedNum}</span>
+              </div>
+
+              ${bodyHTML}
 
               <div class="flex justify-between items-end text-[10px] tracking-widest text-neutral-500 uppercase relative z-20">
                 <span>TRMNS</span>
@@ -479,26 +539,30 @@
         window.print();
       };
 
-      // RENDER FEED BASED ON ACTIVE TAB
+      // RENDER FEED BASED ON ACTIVE TAB & SUB-NAV FILTER
       function renderFeed() {
         const feedContainer = document.getElementById("archive-feed");
         feedContainer.innerHTML = ""; 
 
         let docsToRender = allDocs;
-        if (currentTab === "saved") {
+
+        if (currentMainTab === "saved") {
           docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
+        } else {
+          // INDEX TAB FILTERS
+          if (indexFilter === "images") {
+            docsToRender = allDocs.filter(doc => !doc.data().type || doc.data().type === "image");
+          } else if (indexFilter === "text") {
+            docsToRender = allDocs.filter(doc => doc.data().type === "text" || doc.data().type === "link");
+          }
         }
 
         if (docsToRender.length === 0) {
-          if (currentTab === "saved") {
-            feedContainer.innerHTML = `
-              <div class="text-center py-24 text-[11px] text-neutral-400 uppercase tracking-widest">
-                NO SAVED ENTRIES IN YOUR ARCHIVE.
-              </div>
-            `;
-          } else {
-            feedContainer.innerHTML = renderCard(null, "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", 1, "LOOK 01 ARCHIVE", "TN");
-          }
+          feedContainer.innerHTML = `
+            <div class="text-center py-24 text-[11px] text-neutral-400 uppercase tracking-widest">
+              NO ENTRIES FOUND IN THIS SECTION.
+            </div>
+          `;
           return;
         }
 
@@ -508,19 +572,17 @@
           const docId = doc.id;
           const indexInAll = allDocs.findIndex(d => d.id === docId);
           const entryNum = totalDocs - indexInAll;
-          const captionText = data.caption || "RESEARCH";
-          const signature = data.uploadedBy || "";
-          feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data.imageUrl, entryNum, captionText, signature));
+          feedContainer.insertAdjacentHTML("beforeend", renderCard(docId, data, entryNum));
         });
       }
 
-      // 4. LOAD REAL-TIME CARDS FROM FIREBASE
+      // LOAD FIREBASE REALTIME POSTS
       db.collection("posts").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         allDocs = snapshot.docs;
         renderFeed();
       });
 
-      // 5. CLOUDINARY UPLOAD HANDLER WITH AUTO SIGNATURE
+      // CLOUDINARY WIDGET
       const myWidget = cloudinary.createUploadWidget({
         cloudName: CLOUD_NAME,
         uploadPreset: UPLOAD_PRESET,
@@ -535,6 +597,7 @@
           const finalCaption = (userCaption && userCaption.trim() !== "") ? userCaption.trim().toUpperCase() : "RESEARCH";
 
           db.collection("posts").add({
+            type: "image",
             imageUrl: uploadedUrl,
             caption: finalCaption,
             uploadedBy: activeUploaderInitials || "TRMNS",
@@ -543,19 +606,68 @@
         }
       });
 
-      // Passcode Handler for Upload
+      // UPLOAD BUTTON DISPATCHER
       const uploadBtn = document.getElementById("upload_widget");
       if (uploadBtn) {
         uploadBtn.addEventListener("click", function(){
           const userInput = prompt("ENTER YOUR PERSONAL ACCESS KEY:");
-          if (FOUNDER_KEYS[userInput]) {
-            activeUploaderInitials = FOUNDER_KEYS[userInput];
+          if (!FOUNDER_KEYS[userInput]) {
+            if (userInput !== null) alert("ACCESS DENIED: INVALID KEY");
+            return;
+          }
+
+          activeUploaderInitials = FOUNDER_KEYS[userInput];
+
+          // If user selected Text/Links filter or explicitly chooses to upload Text/Link
+          if (indexFilter === "text") {
+            handleTextOrLinkUpload();
+          } else if (indexFilter === "images") {
             myWidget.open();
-          } else if (userInput !== null) {
-            alert("ACCESS DENIED: INVALID KEY");
+          } else {
+            // "ALL" Filter active: Prompt user which format they want to upload
+            const choice = prompt("SELECT UPLOAD TYPE:\n1 = IMAGE\n2 = TEXT NOTE / LINK", "1");
+            if (choice === "1") {
+              myWidget.open();
+            } else if (choice === "2") {
+              handleTextOrLinkUpload();
+            }
           }
         });
       }
+
+      function handleTextOrLinkUpload() {
+        const entryType = prompt("ENTER ENTRY TYPE:\n1 = LINK / URL\n2 = TEXT NOTE", "1");
+        
+        if (entryType === "1") {
+          const urlInput = prompt("ENTER FULL URL (e.g. https://example.com):");
+          if (!urlInput || urlInput.trim() === "") return;
+          
+          const noteInput = prompt("ENTER BRIEF NOTE OR CAPTION (OPTIONAL):", "REFERENCE LINK");
+          
+          db.collection("posts").add({
+            type: "link",
+            url: urlInput.trim(),
+            note: noteInput ? noteInput.trim().toUpperCase() : "",
+            caption: "LINK ENTRY",
+            uploadedBy: activeUploaderInitials || "TRMNS",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        } else if (entryType === "2") {
+          const textInput = prompt("ENTER YOUR TEXT NOTE OR EXCERPT:");
+          if (!textInput || textInput.trim() === "") return;
+
+          const captionInput = prompt("ENTER A 2-3 WORD DESCRIPTION:", "NOTE");
+
+          db.collection("posts").add({
+            type: "text",
+            textContent: textInput.trim(),
+            caption: captionInput ? captionInput.trim().toUpperCase() : "NOTE",
+            uploadedBy: activeUploaderInitials || "TRMNS",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+      }
+
     });
   </script>
 
