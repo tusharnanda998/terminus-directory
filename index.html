@@ -23,9 +23,9 @@
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 32px; /* Total width of the stitch line bundle */
-      pointer-events: none; /* Allows clicks to pass through to buttons/images below */
-      z-index: 10;
+      width: 32px;
+      pointer-events: none;
+      z-index: 30;
       background-image: repeating-linear-gradient(
         90deg,
         #d4d4d4 0px,
@@ -43,14 +43,16 @@
   <div class="stitch-overlay"></div>
 
   <!-- Header -->
-  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-sm flex justify-between items-center border-b border-neutral-200 pb-4 mb-8 text-[11px] tracking-widest uppercase">
-    <div></div>
-    <div class="flex items-center space-x-4">
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-sm flex justify-between items-center border-b border-neutral-200 pb-4 mb-8 text-[11px] tracking-widest uppercase">
+    <!-- Left Side: Upload Trigger -->
+    <div>
       <button id="upload_widget" class="bg-black text-white px-3 py-1 text-[9px] hover:bg-neutral-800 transition-colors uppercase cursor-pointer">
         + UPLOAD ENTRY
       </button>
-      
-      <!-- Feed Filter Tabs -->
+    </div>
+
+    <!-- Right Side: Feed Filter Tabs -->
+    <div class="flex items-center space-x-4">
       <button id="tab-all" onclick="switchTab('all')" class="font-bold text-black cursor-pointer">[INDEX]</button>
       <button id="tab-saved" onclick="switchTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer">SAVED (<span id="saved-count">0</span>)</button>
     </div>
@@ -65,6 +67,26 @@
     <p>&copy; TERMINUS.DIRECTORY</p>
     <p>ALL RIGHTS RESERVED.</p>
   </footer>
+
+  <!-- Expanded Image Modal Lightbox -->
+  <div 
+    id="lightbox" 
+    onclick="closeLightbox()" 
+    class="fixed inset-0 z-50 bg-white/95 backdrop-blur-md hidden flex items-center justify-center p-4 sm:p-8 cursor-zoom-out"
+  >
+    <img 
+      id="lightbox-img" 
+      src="" 
+      alt="Expanded Research Item" 
+      class="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl transition-transform duration-200"
+    >
+    <button 
+      onclick="closeLightbox()" 
+      class="absolute top-6 right-6 text-neutral-500 hover:text-black font-mono text-[11px] uppercase tracking-widest"
+    >
+      [ CLOSE ✕ ]
+    </button>
+  </div>
 
   <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function () {
@@ -99,7 +121,7 @@
       }
       updateSavedBadge();
 
-      // 3. SEAMLESS SLIDE TEMPLATE RENDERER
+      // 3. SEAMLESS SLIDE TEMPLATE RENDERER WITH EXPAND TRIGGER
       function renderCard(docId, imageUrl, entryNum) {
         const isSaved = docId && savedIds.includes(docId);
 
@@ -116,7 +138,8 @@
               <img 
                 src="${imageUrl}" 
                 alt="Research Item" 
-                class="max-h-[60vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 relative z-30"
+                onclick="openLightbox('${imageUrl}')"
+                class="max-h-[60vh] w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 relative z-10 cursor-zoom-in"
               >
             </div>
 
@@ -161,6 +184,27 @@
           </article>
         `;
       }
+
+      // LIGHTBOX EXPAND HANDLERS
+      window.openLightbox = function(imageUrl) {
+        const lightbox = document.getElementById("lightbox");
+        const lightboxImg = document.getElementById("lightbox-img");
+        lightboxImg.src = imageUrl;
+        lightbox.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+      };
+
+      window.closeLightbox = function() {
+        const lightbox = document.getElementById("lightbox");
+        lightbox.classList.add("hidden");
+        document.body.style.overflow = "auto";
+      };
+
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+          closeLightbox();
+        }
+      });
 
       // GLOBAL BOOKMARK TOGGLE
       window.toggleSave = function(docId) {
