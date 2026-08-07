@@ -413,7 +413,7 @@
         }
       };
 
-      // RELIABLE HTML2PDF DOWNLOAD ENGINE (Strict Single Page per Entry - No Trailing Blank Pages)
+      // HTML2PDF DOWNLOAD ENGINE WITH ZERO EXTRA BLANK PAGES
       window.exportSavedPDF = async function() {
         if (savedIds.length === 0) return;
 
@@ -424,7 +424,7 @@
         const docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
         const totalDocs = allDocs.length;
 
-        docsToRender.forEach((doc, index) => {
+        docsToRender.forEach((doc) => {
           const data = doc.data();
           const docId = doc.id;
           const indexInAll = allDocs.findIndex(d => d.id === docId);
@@ -447,11 +447,8 @@
             `;
           }
 
-          const isLast = (index === docsToRender.length - 1);
-          const bottomSpacing = isLast ? "margin-bottom: 0px;" : "margin-bottom: 0px; page-break-after: always; break-after: page;";
-
           const pageHTML = `
-            <div style="width: 800px; height: 1050px; padding: 50px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; justify-content: space-between; background: #ffffff; ${bottomSpacing}">
+            <div style="width: 800px; height: 1050px; padding: 50px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; justify-content: space-between; background: #ffffff; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid;">
               <div style="position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 18px; pointer-events: none; background-image: repeating-linear-gradient(90deg, #b3b3b3 0px, #b3b3b3 1px, transparent 1px, transparent 2px); opacity: 0.65;"></div>
               <div style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.1em; color: #737373; text-transform: uppercase; position: relative; z-index: 2;">
                 <span>TERMINUS PROJECTS LLC ©</span>
@@ -480,7 +477,7 @@
           image:        { type: 'jpeg', quality: 0.98 },
           html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
           jsPDF:        { unit: 'px', format: [800, 1050], orientation: 'portrait' },
-          pagebreak:    { mode: ['css', 'legacy'] }
+          pagebreak:    { mode: 'css' }
         };
 
         html2pdf().from(stage).set(opt).save().then(() => {
