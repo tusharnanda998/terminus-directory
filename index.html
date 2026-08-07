@@ -103,7 +103,7 @@
     <div class="flex justify-between items-center w-full relative z-20 h-full">
       <!-- Left Side: Dynamic Upload Trigger -->
       <div class="flex items-center h-full">
-        <button id="upload_widget" class="bg-white text-black border border-neutral-300 px-2 h-[18px] box-border text-[9px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-none flex items-center justify-center">
+        <button id="upload_widget" class="appearance-none m-0 bg-white text-black border border-neutral-300 px-2 h-[18px] box-border text-[9px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-[18px] flex items-center justify-center">
           + UPLOAD ENTRY
         </button>
       </div>
@@ -111,9 +111,9 @@
       <!-- Right Side: Main Tabs + PDF Export Trigger -->
       <div class="flex items-center h-full leading-none">
         <div class="flex items-center h-[18px] space-x-4">
-          <button id="tab-all" onclick="switchMainTab('all')" class="font-bold text-black cursor-pointer leading-none flex items-center h-full">INDEX</button>
-          <button id="tab-saved" onclick="switchMainTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none flex items-center h-full">SAVED (<span id="saved-count">0</span>)</button>
-          <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden text-black underline hover:text-neutral-600 transition-colors cursor-pointer text-[9px] leading-none flex items-center h-full">EXPORT PDF</button>
+          <button id="tab-all" onclick="switchMainTab('all')" class="appearance-none m-0 p-0 bg-transparent border-0 font-bold text-black cursor-pointer leading-[18px] flex items-center h-[18px]">INDEX</button>
+          <button id="tab-saved" onclick="switchMainTab('saved')" class="appearance-none m-0 p-0 bg-transparent border-0 text-neutral-400 hover:text-black transition-colors cursor-pointer leading-[18px] flex items-center h-[18px]">SAVED (<span id="saved-count">0</span>)</button>
+          <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden appearance-none m-0 p-0 bg-transparent border-0 text-black underline hover:text-neutral-600 transition-colors cursor-pointer text-[9px] leading-[18px] flex items-center h-[18px]">EXPORT PDF</button>
         </div>
       </div>
     </div>
@@ -385,12 +385,12 @@
         const exportBtn = document.getElementById("export-pdf-btn");
 
         if (tab === "all") {
-          allBtn.className = "font-bold text-black cursor-pointer leading-none";
-          savedBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none";
+          allBtn.className = "appearance-none m-0 p-0 bg-transparent border-0 font-bold text-black cursor-pointer leading-[18px] flex items-center h-[18px]";
+          savedBtn.className = "appearance-none m-0 p-0 bg-transparent border-0 text-neutral-400 hover:text-black transition-colors cursor-pointer leading-[18px] flex items-center h-[18px]";
           exportBtn.classList.add("hidden");
         } else {
-          savedBtn.className = "font-bold text-black cursor-pointer leading-none";
-          allBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none";
+          savedBtn.className = "appearance-none m-0 p-0 bg-transparent border-0 font-bold text-black cursor-pointer leading-[18px] flex items-center h-[18px]";
+          allBtn.className = "appearance-none m-0 p-0 bg-transparent border-0 text-neutral-400 hover:text-black transition-colors cursor-pointer leading-[18px] flex items-center h-[18px]";
           if (savedIds.length > 0) exportBtn.classList.remove("hidden");
         }
         renderFeed();
