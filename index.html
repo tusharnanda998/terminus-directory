@@ -511,42 +511,55 @@
 
       // NATIVE PRINT ENGINE
       window.exportSavedPDF = async function() {
-        if (savedIds.length === 0) return;
+  if (savedIds.length === 0) return;
 
-        const stage = document.getElementById("print-stage");
-        stage.innerHTML = ""; 
+  // Open the window synchronously, right when the click happens —
+  // this is what Safari's popup blocker actually allows.
+  const pdfWindow = window.open('', '_blank');
+  if (pdfWindow) {
+    pdfWindow.document.write('Generating your archive…');
+  }
 
-        const docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
-        const totalDocs = allDocs.length;
+  const stage = document.getElementById("print-stage");
+  stage.innerHTML = "";
 
-        docsToRender.forEach((doc) => {
-          const data = doc.data();
-          const docId = doc.id;
-          const indexInAll = allDocs.findIndex(d => d.id === docId);
-          const entryNum = totalDocs - indexInAll;
-          const formattedNum = String(entryNum).padStart(3, '0');
-          const captionText = data.caption || "RESEARCH";
-          const signature = data.uploadedBy || "";
-          const metaLine = signature ? `${captionText} | ${signature}` : captionText;
+  // ...(all your existing page-building code stays exactly the same)...
 
-          let bodyHTML = '';
-          if (data.type === "link") {
-            bodyHTML = `<div class="my-auto py-8 text-center text-xs font-bold uppercase relative z-20"><span class="bg-white px-6 py-4">${data.url}</span></div>`;
-          } else if (data.type === "text") {
-            bodyHTML = `<div class="my-auto py-8 text-center text-xs uppercase px-6 relative z-20 flex justify-center"><span class="bg-white px-6 py-4 relative z-20">${data.textContent}</span></div>`;
-          } else {
-            bodyHTML = `
-              <div class="my-auto py-2 flex justify-center items-center relative z-20" style="flex: 1; min-height: 0;">
-                <img 
-                  src="${data.imageUrl}" 
-                  alt="Research Item" 
-                  style="max-height: 100%; max-width: 100%; object-fit: contain; display: block; margin: 0 auto;"
-                  class="bg-white relative z-20"
-                  crossorigin="anonymous"
-                >
-              </div>
-            `;
-          }
+  const opt = {
+    margin:       0,
+    filename:     'terminus-directory-archive.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
+    jsPDF:        { unit: 'px', format: [800, 1050], orientation: 'portrait' },
+    pagebreak:    { mode: 'css', avoid: '.html2pdf__page-break' }
+  };
+
+  html2pdf().from(stage).set(opt).toPdf().get('pdf').then((pdf) => {
+    stage.style.display = "none";
+    stage.innerHTML = "";
+
+    const blob = pdf.output('blob');
+    const blobURL = URL.createObjectURL(blob);
+
+    if (pdfWindow && !pdfWindow.closed) {
+      pdfWindow.location.href = blobURL;
+    } else {
+      // Popup got blocked anyway — fall back to a forced download
+      const link = document.createElement('a');
+      link.href = blobURL;
+      link.download = 'terminus-directory-archive.pdf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+  }).catch(err => {
+    stage.style.display = "none";
+    stage.innerHTML = "";
+    if (pdfWindow && !pdfWindow.closed) pdfWindow.close();
+    console.error("PDF generation error:", err);
+    alert("PDF EXPORT FAILED. PLEASE TRY AGAIN.");
+  });
+};
 
           const pageHTML = `
             <div class="print-page">
