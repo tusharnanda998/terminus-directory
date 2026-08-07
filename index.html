@@ -68,10 +68,10 @@
     .stitch-overlay-horizontal {
       position: absolute;
       top: 0;
+      bottom: 0;
       left: 50%;
       transform: translateX(-50%);
       width: 100vw;
-      height: 18px;
       pointer-events: none;
       z-index: 10;
       background-image: repeating-linear-gradient(
@@ -95,7 +95,7 @@
   <div class="stitch-overlay-vertical"></div>
 
   <!-- Header Container -->
-  <header class="sticky top-0 z-40 bg-transparent mb-2 text-[11px] tracking-widest uppercase relative h-[18px] flex items-center justify-center">
+  <header class="sticky top-0 z-40 bg-transparent mb-2 text-[11px] tracking-widest uppercase relative min-h-[18px] flex items-center justify-center">
     
     <!-- Full-Width Horizontal 9-Stitch Background Overlay in Header -->
     <div class="stitch-overlay-horizontal"></div>
