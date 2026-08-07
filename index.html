@@ -413,11 +413,22 @@
       };
 
       // BULLETPROOF SAFARI-COMPATIBLE PDF EXPORT ENGINE
-      // Fix: window.open() is called SYNCHRONOUSLY on click (before any await),
-      // because Safari's popup blocker only allows window.open() inside the
-      // original user-gesture call stack. We then redirect that already-open
-      // window to the blob URL once the PDF is ready, with a download-link
-      // fallback if the popup ever does get blocked.
+      //
+      // Two Safari-specific fixes are combined here:
+      //
+      // 1. window.open() is called SYNCHRONOUSLY on click (before any await),
+      //    because Safari's popup blocker only allows window.open() inside the
+      //    original user-gesture call stack. We then redirect that already-open
+      //    window to the blob URL once the PDF is ready, with a download-link
+      //    fallback if the popup ever does get blocked.
+      //
+      // 2. Instead of letting html2pdf.js auto-detect page breaks via CSS
+      //    (mode: 'css'), which relies on `page-break-after` — a property
+      //    that WebKit/Safari does not reliably honor inside flex containers —
+      //    we render each saved entry to its own canvas individually and
+      //    manually place it on its own fixed-size PDF page with jsPDF.
+      //    This guarantees exactly one entry per page with no blank leading
+      //    page and no CSS page-break guessing.
       window.exportSavedPDF = async function() {
         if (savedIds.length === 0) return;
 
@@ -428,12 +439,18 @@
         }
 
         const stage = document.getElementById("print-stage");
-        stage.innerHTML = ""; 
+        stage.innerHTML = "";
+        // Keep it out of the visible flow instead of display:none, so
+        // html2canvas measures/rasterizes it reliably in every browser.
+        stage.style.cssText = "display: block; position: fixed; top: 0; left: -10000px;";
 
         const docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
         const totalDocs = allDocs.length;
 
-        docsToRender.forEach((doc, index) => {
+        const PAGE_W = 800;
+        const PAGE_H = 1050;
+
+        function buildPageDiv(doc) {
           const data = doc.data();
           const docId = doc.id;
           const indexInAll = allDocs.findIndex(d => d.id === docId);
@@ -456,11 +473,8 @@
             `;
           }
 
-          const pageBreakClass = (index === docsToRender.length - 1) ? "" : "html2pdf__page-break";
-
           const pageDiv = document.createElement("div");
-          pageDiv.className = pageBreakClass;
-          pageDiv.style.cssText = "width: 800px; height: 1050px; padding: 50px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; justify-content: space-between; background: #ffffff;";
+          pageDiv.style.cssText = `width: ${PAGE_W}px; height: ${PAGE_H}px; padding: 50px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; justify-content: space-between; background: #ffffff;`;
           pageDiv.innerHTML = `
             <div style="position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 18px; pointer-events: none; background-image: repeating-linear-gradient(90deg, #b3b3b3 0px, #b3b3b3 1px, transparent 1px, transparent 2px); opacity: 0.65;"></div>
             <div style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.1em; color: #737373; text-transform: uppercase; position: relative; z-index: 2;">
@@ -474,31 +488,47 @@
               <span>${metaLine}</span>
             </div>
           `;
-          stage.appendChild(pageDiv);
-        });
+          return pageDiv;
+        }
 
-        stage.style.display = "block";
+        function waitForImages(container) {
+          const images = container.querySelectorAll("img");
+          return Promise.all(Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(resolve => {
+              img.onload = resolve;
+              img.onerror = resolve;
+            });
+          }));
+        }
 
-        const images = stage.querySelectorAll("img");
-        await Promise.all(Array.from(images).map(img => {
-          if (img.complete) return Promise.resolve();
-          return new Promise(resolve => {
-            img.onload = resolve;
-            img.onerror = resolve;
-          });
-        }));
+        try {
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({ unit: 'px', format: [PAGE_W, PAGE_H], orientation: 'portrait' });
 
-        const opt = {
-          margin:       0,
-          filename:     'terminus-directory-archive.pdf',
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
-          jsPDF:        { unit: 'px', format: [800, 1050], orientation: 'portrait' },
-          pagebreak:    { mode: 'css', avoid: '.html2pdf__page-break' }
-        };
+          for (let i = 0; i < docsToRender.length; i++) {
+            const pageDiv = buildPageDiv(docsToRender[i]);
+            stage.innerHTML = "";
+            stage.appendChild(pageDiv);
 
-        html2pdf().from(stage).set(opt).toPdf().get('pdf').then((pdf) => {
-          stage.style.display = "none";
+            await waitForImages(pageDiv);
+
+            const canvas = await html2canvas(pageDiv, {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: '#ffffff',
+              logging: false,
+              width: PAGE_W,
+              height: PAGE_H
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.98);
+
+            if (i > 0) pdf.addPage([PAGE_W, PAGE_H], 'portrait');
+            pdf.addImage(imgData, 'JPEG', 0, 0, PAGE_W, PAGE_H);
+          }
+
+          stage.style.cssText = "display: none;";
           stage.innerHTML = "";
 
           const blob = pdf.output('blob');
@@ -517,13 +547,13 @@
             link.click();
             link.remove();
           }
-        }).catch(err => {
-          stage.style.display = "none";
+        } catch (err) {
+          stage.style.cssText = "display: none;";
           stage.innerHTML = "";
           if (pdfWindow && !pdfWindow.closed) pdfWindow.close();
           console.error("PDF generation error:", err);
           alert("PDF EXPORT FAILED. PLEASE TRY AGAIN.");
-        });
+        }
       };
 
       function renderFeed() {
