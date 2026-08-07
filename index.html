@@ -15,6 +15,10 @@
 
   <!-- html2pdf Library for Mobile & Desktop PDF Downloads -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- jsPDF loaded explicitly and separately: the html2pdf bundle does not
+       reliably expose jsPDF on window, so we load its own UMD build here,
+       which guarantees window.jspdf.jsPDF is available. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     /* Direct CDN Links to GitHub Repository TTF Files via jsDelivr */
@@ -503,7 +507,12 @@
         }
 
         try {
-          const { jsPDF } = window.jspdf;
+          // jsPDF is loaded explicitly via its own <script> tag in <head>,
+          // so it's guaranteed to be at window.jspdf.jsPDF (UMD global).
+          const jsPDF = window.jspdf && window.jspdf.jsPDF;
+          if (!jsPDF) {
+            throw new Error("jsPDF library failed to load (window.jspdf.jsPDF is missing). Check that the jspdf <script> tag in <head> is loading correctly.");
+          }
           const pdf = new jsPDF({ unit: 'px', format: [PAGE_W, PAGE_H], orientation: 'portrait' });
 
           for (let i = 0; i < docsToRender.length; i++) {
@@ -552,7 +561,7 @@
           stage.innerHTML = "";
           if (pdfWindow && !pdfWindow.closed) pdfWindow.close();
           console.error("PDF generation error:", err);
-          alert("PDF EXPORT FAILED. PLEASE TRY AGAIN.");
+          alert("PDF EXPORT FAILED: " + (err && err.message ? err.message : err));
         }
       };
 
