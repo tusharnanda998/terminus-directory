@@ -12,6 +12,7 @@
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
   <!-- html2pdf Library for Mobile & Desktop PDF Downloads -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -111,9 +112,12 @@
     <div class="stitch-overlay-horizontal"></div>
 
     <div class="flex justify-between items-center w-full relative z-20 h-full">
-      <!-- Left Side: Dynamic Upload Trigger -->
-      <div class="flex items-center h-full">
-        <button id="upload_widget" class="appearance-none m-0 bg-white text-black border border-neutral-300 px-1.5 h-[15px] box-border text-[8px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-none flex items-center justify-center">
+      <!-- Left Side: Sign In / Dynamic Upload Trigger -->
+      <div class="flex items-center h-full space-x-2">
+        <button id="signin_widget" class="appearance-none m-0 p-0 bg-transparent border-0 text-neutral-500 hover:text-black transition-colors text-[8px] uppercase cursor-pointer leading-none flex items-center h-[15px]">
+          SIGN IN
+        </button>
+        <button id="upload_widget" class="hidden appearance-none m-0 bg-white text-black border border-neutral-300 px-1.5 h-[15px] box-border text-[8px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-none flex items-center justify-center">
           + UPLOAD ENTRY
         </button>
       </div>
@@ -202,16 +206,15 @@
       const CLOUD_NAME = "nh2yb4q3";
       const UPLOAD_PRESET = "terminus_preset";
 
-      const FOUNDER_KEYS = {
-        "TN": "TN",
-        "MM": "MM",
-        "TS": "TS",
-        "JW": "Woods",
-        "KJJ": "KJJ",
-        "Glendale": "TERMINUS TEAM"
-      };
-
-      let activeUploaderInitials = null;
+      // Real Firebase Authentication replaces the old client-side
+      // FOUNDER_KEYS prompt system. That system only *looked* secure —
+      // the keys lived in plain JS anyone could read via dev tools, and
+      // nothing on the Firestore side actually enforced anything. Now,
+      // writes/deletes are gated by Firestore Security Rules that check
+      // a real signed-in user against a "founders" allowlist collection,
+      // which the client can't fake or bypass.
+      let currentUser = null;
+      let currentFounderInitials = null;
 
       const firebaseConfig = {
         apiKey: "AIzaSyABHPbsfb7wLbLsipwidq4oQqrLdiUrho",
@@ -225,6 +228,7 @@
 
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
+      const auth = firebase.auth();
 
       let allDocs = [];
       let currentMainTab = "all";
@@ -427,14 +431,13 @@
       };
 
       window.deleteCard = function(docId) {
-        const userInput = prompt("ENTER ACCESS KEY TO DELETE:");
-        if (FOUNDER_KEYS[userInput]) {
-          if (confirm("Permanently delete this research card?")) {
-            if (savedIds.includes(docId)) toggleSave(docId);
-            db.collection("posts").doc(docId).delete().catch(error => alert("Error deleting card: " + error.message));
-          }
-        } else if (userInput !== null) {
-          alert("ACCESS DENIED: INVALID KEY");
+        if (!currentUser) {
+          alert("PLEASE SIGN IN TO DELETE ENTRIES.");
+          return;
+        }
+        if (confirm("Permanently delete this research card?")) {
+          if (savedIds.includes(docId)) toggleSave(docId);
+          db.collection("posts").doc(docId).delete().catch(error => alert("Error deleting card: " + error.message));
         }
       };
 
@@ -678,22 +681,71 @@
             type: "image",
             imageUrl: uploadedUrl,
             caption: finalCaption,
-            uploadedBy: activeUploaderInitials || "TRMNS",
+            uploadedBy: currentFounderInitials || "TRMNS",
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         }
       });
 
+      // AUTH STATE — the single source of truth for who's signed in.
+      // Firestore Security Rules independently re-check this server-side
+      // on every write, so this client-side gate is just for UX (showing/
+      // hiding buttons); it isn't what's actually protecting the data.
+      auth.onAuthStateChanged(function(user) {
+        currentUser = user;
+        if (user) {
+          db.collection("founders").doc(user.uid).get().then(function(doc) {
+            currentFounderInitials = doc.exists ? (doc.data().initials || "TRMNS") : "TRMNS";
+            updateAuthUI();
+          }).catch(function() {
+            currentFounderInitials = "TRMNS";
+            updateAuthUI();
+          });
+        } else {
+          currentFounderInitials = null;
+          updateAuthUI();
+        }
+      });
+
+      function updateAuthUI() {
+        const signInBtn = document.getElementById("signin_widget");
+        const uploadBtn = document.getElementById("upload_widget");
+        if (!signInBtn || !uploadBtn) return;
+
+        if (currentUser) {
+          signInBtn.innerText = "SIGN OUT (" + (currentFounderInitials || "USER") + ")";
+          uploadBtn.classList.remove("hidden");
+        } else {
+          signInBtn.innerText = "SIGN IN";
+          uploadBtn.classList.add("hidden");
+        }
+      }
+
+      const signInBtn = document.getElementById("signin_widget");
+      if (signInBtn) {
+        signInBtn.addEventListener("click", function() {
+          if (currentUser) {
+            auth.signOut();
+            return;
+          }
+          const email = prompt("EMAIL:");
+          if (!email || email.trim() === "") return;
+          const password = prompt("PASSWORD:");
+          if (!password || password.trim() === "") return;
+
+          auth.signInWithEmailAndPassword(email.trim(), password).catch(function(err) {
+            alert("SIGN IN FAILED: " + err.message);
+          });
+        });
+      }
+
       const uploadBtn = document.getElementById("upload_widget");
       if (uploadBtn) {
         uploadBtn.addEventListener("click", function(){
-          const userInput = prompt("ENTER YOUR PERSONAL ACCESS KEY:");
-          if (!FOUNDER_KEYS[userInput]) {
-            if (userInput !== null) alert("ACCESS DENIED: INVALID KEY");
+          if (!currentUser) {
+            alert("PLEASE SIGN IN FIRST.");
             return;
           }
-
-          activeUploaderInitials = FOUNDER_KEYS[userInput];
 
           if (filterShowText && !filterShowImages) {
             handleTextOrLinkUpload();
@@ -720,7 +772,7 @@
             url: urlInput.trim(),
             note: noteInput ? noteInput.trim().toUpperCase() : "",
             caption: "LINK ENTRY",
-            uploadedBy: activeUploaderInitials || "TRMNS",
+            uploadedBy: currentFounderInitials || "TRMNS",
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         } else if (entryType === "2") {
@@ -732,7 +784,7 @@
             type: "text",
             textContent: textInput.trim(),
             caption: captionInput ? captionInput.trim().toUpperCase() : "NOTE",
-            uploadedBy: activeUploaderInitials || "TRMNS",
+            uploadedBy: currentFounderInitials || "TRMNS",
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         }
