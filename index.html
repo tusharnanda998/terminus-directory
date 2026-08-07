@@ -217,7 +217,7 @@
       let currentFounderInitials = null;
 
       const firebaseConfig = {
-        apiKey: "AIzaSyABHPbsfb7wLbLsipwidq4oQqrLdiUrho",
+        apiKey: "AIzaSyABHPBsfb7wLblLsipwidq4oQqrLdiUrho",
         authDomain: "terminus-projects-llc.firebaseapp.com",
         projectId: "terminus-projects-llc",
         storageBucket: "terminus-projects-llc.firebasestorage.app",
@@ -235,9 +235,17 @@
       let filterShowImages = true;
       let filterShowText = true;
       let savedIds = JSON.parse(localStorage.getItem("terminus_saved_cards") || "[]");
+      // When signed in, savedIds is synced live from Firestore (savedLists/{uid})
+      // instead of localStorage, so a person's saved items follow them across
+      // devices. This tracks the active Firestore listener so we can detach it
+      // cleanly on sign-out rather than leaking listeners across sessions.
+      let savedListUnsubscribe = null;
 
       function updateSavedBadge() {
-        if (allDocs && allDocs.length > 0) {
+        // Only prune/persist against localStorage for signed-out (guest)
+        // browsing. When signed in, Firestore is the source of truth and
+        // is kept in sync separately via the savedLists listener.
+        if (allDocs && allDocs.length > 0 && !currentUser) {
           const validSavedIds = savedIds.filter(id => allDocs.some(doc => doc.id === id));
           if (validSavedIds.length !== savedIds.length) {
             savedIds = validSavedIds;
@@ -381,14 +389,30 @@
       });
 
       window.toggleSave = function(docId) {
-        if (savedIds.includes(docId)) {
-          savedIds = savedIds.filter(id => id !== docId);
+        if (currentUser) {
+          // Signed in: write straight to Firestore. The savedLists listener
+          // (set up in onAuthStateChanged) will pick up the change and
+          // re-render automatically — no need to touch savedIds locally here.
+          const isSaved = savedIds.includes(docId);
+          db.collection("savedLists").doc(currentUser.uid).set({
+            postIds: isSaved
+              ? firebase.firestore.FieldValue.arrayRemove(docId)
+              : firebase.firestore.FieldValue.arrayUnion(docId)
+          }, { merge: true }).catch(function(err) {
+            alert("Error updating saved list: " + err.message);
+          });
         } else {
-          savedIds.push(docId);
+          // Signed out: fall back to the original localStorage-only behavior
+          // so guests can still save/export without an account.
+          if (savedIds.includes(docId)) {
+            savedIds = savedIds.filter(id => id !== docId);
+          } else {
+            savedIds.push(docId);
+          }
+          localStorage.setItem("terminus_saved_cards", JSON.stringify(savedIds));
+          updateSavedBadge();
+          renderFeed();
         }
-        localStorage.setItem("terminus_saved_cards", JSON.stringify(savedIds));
-        updateSavedBadge();
-        renderFeed();
       };
 
       window.switchMainTab = function(tab) {
@@ -693,6 +717,15 @@
       // hiding buttons); it isn't what's actually protecting the data.
       auth.onAuthStateChanged(function(user) {
         currentUser = user;
+
+        // Detach any previous savedLists listener before switching users
+        // (or signing out), so we never leak a listener tied to the wrong
+        // account or keep querying after sign-out.
+        if (savedListUnsubscribe) {
+          savedListUnsubscribe();
+          savedListUnsubscribe = null;
+        }
+
         if (user) {
           db.collection("founders").doc(user.uid).get().then(function(doc) {
             currentFounderInitials = doc.exists ? (doc.data().initials || "TRMNS") : "TRMNS";
@@ -701,9 +734,25 @@
             currentFounderInitials = "TRMNS";
             updateAuthUI();
           });
+
+          // Live-sync saved items from Firestore so they follow this
+          // person across phone/computer/any device they sign into.
+          savedListUnsubscribe = db.collection("savedLists").doc(user.uid)
+            .onSnapshot(function(doc) {
+              savedIds = doc.exists ? (doc.data().postIds || []) : [];
+              updateSavedBadge();
+              renderFeed();
+            }, function(err) {
+              console.error("savedLists listener error:", err);
+            });
         } else {
           currentFounderInitials = null;
+          // Signed out: fall back to whatever's in localStorage for guest
+          // browsing on this device.
+          savedIds = JSON.parse(localStorage.getItem("terminus_saved_cards") || "[]");
           updateAuthUI();
+          updateSavedBadge();
+          renderFeed();
         }
       });
 
