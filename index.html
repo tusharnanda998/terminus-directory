@@ -78,13 +78,8 @@
       opacity: 0.7;
     }
 
-    /* MOBILE & DESKTOP PDF / PRINT STAGING (Hidden offscreen to prevent leading blank pages) */
     #print-stage {
-      position: fixed;
-      left: -9999px;
-      top: 0;
-      visibility: hidden;
-      z-index: -1000;
+      display: none;
     }
   </style>
 </head>
@@ -421,11 +416,8 @@
       window.exportSavedPDF = async function() {
         if (savedIds.length === 0) return;
 
-        const stage = document.getElementById("print-stage");
-        stage.style.visibility = "visible"; 
-        stage.style.position = "static";
-        stage.style.left = "auto";
-        stage.innerHTML = ""; 
+        const container = document.createElement("div");
+        container.style.cssText = "position: absolute; left: -9999px; top: 0; background: #ffffff;";
 
         const docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
         const totalDocs = allDocs.length;
@@ -455,25 +447,28 @@
 
           const pageBreakClass = (index === docsToRender.length - 1) ? "" : "html2pdf__page-break";
 
-          const pageHTML = `
-            <div class="${pageBreakClass}" style="width: 800px; height: 1050px; padding: 50px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; justify-content: space-between; background: #ffffff;">
-              <div style="position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 18px; pointer-events: none; background-image: repeating-linear-gradient(90deg, #b3b3b3 0px, #b3b3b3 1px, transparent 1px, transparent 2px); opacity: 0.65;"></div>
-              <div style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.1em; color: #737373; text-transform: uppercase; position: relative; z-index: 2;">
-                <span>TERMINUS PROJECTS LLC ©</span>
-                <span>${formattedNum}</span>
-              </div>
-              <div style="position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                ${bodyHTML}
-              </div>
-              <div style="display: flex; justify-content: flex-end; font-size: 10px; letter-spacing: 0.1em; color: #737373; text-transform: uppercase; position: relative; z-index: 2;">
-                <span>${metaLine}</span>
-              </div>
+          const pageDiv = document.createElement("div");
+          pageDiv.className = pageBreakClass;
+          pageDiv.style.cssText = "width: 800px; height: 1050px; padding: 50px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; justify-content: space-between; background: #ffffff;";
+          pageDiv.innerHTML = `
+            <div style="position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 18px; pointer-events: none; background-image: repeating-linear-gradient(90deg, #b3b3b3 0px, #b3b3b3 1px, transparent 1px, transparent 2px); opacity: 0.65;"></div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.1em; color: #737373; text-transform: uppercase; position: relative; z-index: 2;">
+              <span>TERMINUS PROJECTS LLC ©</span>
+              <span>${formattedNum}</span>
+            </div>
+            <div style="position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; justify-content: center;">
+              ${bodyHTML}
+            </div>
+            <div style="display: flex; justify-content: flex-end; font-size: 10px; letter-spacing: 0.1em; color: #737373; text-transform: uppercase; position: relative; z-index: 2;">
+              <span>${metaLine}</span>
             </div>
           `;
-          stage.insertAdjacentHTML("beforeend", pageHTML);
+          container.appendChild(pageDiv);
         });
 
-        const images = stage.querySelectorAll("img");
+        document.body.appendChild(container);
+
+        const images = container.querySelectorAll("img");
         await Promise.all(Array.from(images).map(img => {
           if (img.complete) return Promise.resolve();
           return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
@@ -488,11 +483,8 @@
           pagebreak:    { mode: 'css', avoid: '.html2pdf__page-break' }
         };
 
-        html2pdf().from(stage).set(opt).save().then(() => {
-          stage.style.visibility = "hidden";
-          stage.style.position = "fixed";
-          stage.style.left = "-9999px";
-          stage.innerHTML = "";
+        html2pdf().from(container).set(opt).save().then(() => {
+          document.body.removeChild(container);
         });
       };
 
