@@ -23,6 +23,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
+    /* Prevent iOS Safari from automatically inflating small text sizes
+       ("font boosting"), which was silently rendering header/nav text
+       larger on mobile than the declared font-size and breaking any
+       fixed-height vertical centering. */
+    html {
+      -webkit-text-size-adjust: 100%;
+      -moz-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
     /* Direct CDN Links to GitHub Repository TTF Files via jsDelivr */
     @font-face {
       font-family: 'Eurostile';
@@ -103,7 +113,7 @@
     <div class="flex justify-between items-center w-full relative z-20 h-full">
       <!-- Left Side: Dynamic Upload Trigger -->
       <div class="flex items-center h-full">
-        <button id="upload_widget" class="appearance-none m-0 bg-white text-black border border-neutral-300 px-2 h-[18px] box-border text-[9px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-none flex items-center justify-center">
+        <button id="upload_widget" class="appearance-none m-0 bg-white text-black border border-neutral-300 px-1.5 h-[15px] box-border text-[8px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-none flex items-center justify-center">
           + UPLOAD ENTRY
         </button>
       </div>
