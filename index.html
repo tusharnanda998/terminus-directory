@@ -456,6 +456,23 @@
         const PAGE_W = 800;
         const PAGE_H = 1050;
 
+        // html2canvas has unreliable support for CSS repeating-linear-gradient,
+        // so instead of relying on the gradient used for the on-screen stitch
+        // line, we bake the same pattern into a tiny raster tile (a real PNG)
+        // and use it as a tiled background image. html2canvas renders actual
+        // images correctly, which the gradient version was not doing.
+        function buildStitchTileDataURL() {
+          const tile = document.createElement('canvas');
+          tile.width = 2;
+          tile.height = 2;
+          const ctx = tile.getContext('2d');
+          ctx.clearRect(0, 0, 2, 2);
+          ctx.fillStyle = 'rgba(179, 179, 179, 0.65)'; // #b3b3b3 @ 0.65 opacity
+          ctx.fillRect(0, 0, 1, 2); // 1px colored column, 1px transparent column
+          return tile.toDataURL('image/png');
+        }
+        const stitchTileDataURL = buildStitchTileDataURL();
+
         function buildPageDiv(doc) {
           const data = doc.data();
           const docId = doc.id;
@@ -482,7 +499,7 @@
           const pageDiv = document.createElement("div");
           pageDiv.style.cssText = `width: ${PAGE_W}px; height: ${PAGE_H}px; padding: 50px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; justify-content: space-between; background: #ffffff;`;
           pageDiv.innerHTML = `
-            <div style="position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 18px; pointer-events: none; background-image: repeating-linear-gradient(90deg, #b3b3b3 0px, #b3b3b3 1px, transparent 1px, transparent 2px); opacity: 0.65;"></div>
+            <div style="position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 18px; pointer-events: none; background-image: url('${stitchTileDataURL}'); background-repeat: repeat;"></div>
             <div style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.1em; color: #737373; text-transform: uppercase; position: relative; z-index: 2;">
               <span>TERMINUS PROJECTS LLC ©</span>
               <span>${formattedNum}</span>
