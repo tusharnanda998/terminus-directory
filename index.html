@@ -105,7 +105,7 @@
   <div class="stitch-overlay-vertical"></div>
 
   <!-- Header Container -->
-  <header class="sticky top-0 z-40 bg-transparent mb-2 text-[11px] tracking-widest uppercase relative min-h-[18px] flex items-center justify-center">
+  <header class="sticky top-0 z-40 bg-transparent mb-0.5 text-[11px] tracking-widest uppercase relative min-h-[18px] flex items-center justify-center">
     
     <!-- Full-Width Horizontal 9-Stitch Background Overlay in Header -->
     <div class="stitch-overlay-horizontal"></div>
@@ -123,18 +123,20 @@
         <div class="flex items-center h-[18px] space-x-4">
           <button id="tab-all" onclick="switchMainTab('all')" class="appearance-none m-0 p-0 bg-transparent border-0 font-bold text-black cursor-pointer leading-none flex items-center h-[18px]">INDEX</button>
           <button id="tab-saved" onclick="switchMainTab('saved')" class="appearance-none m-0 p-0 bg-transparent border-0 text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none flex items-center h-[18px]">SAVED (<span id="saved-count">0</span>)</button>
-          <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden appearance-none m-0 p-0 bg-transparent border-0 text-black underline hover:text-neutral-600 transition-colors cursor-pointer text-[9px] leading-none flex items-center h-[18px]">EXPORT PDF</button>
         </div>
       </div>
     </div>
   </header>
 
   <!-- INDEX SUB-NAV -->
-  <div id="index-subnav" class="w-full sticky top-[26px] z-30 mb-8 flex justify-start">
+  <div id="index-subnav" class="w-full sticky top-[20px] z-30 mb-8 flex justify-between items-center">
     <div class="flex items-center space-x-2 text-[9px] tracking-widest uppercase bg-white pr-4 py-1">
       <button id="subtab-images" onclick="toggleIndexFilter('images')" class="font-bold text-black cursor-pointer transition-colors">IMAGES</button>
       <span class="text-neutral-300">|</span>
       <button id="subtab-text" onclick="toggleIndexFilter('text')" class="font-bold text-black cursor-pointer transition-colors">TEXT</button>
+    </div>
+    <div class="flex items-center text-[9px] tracking-widest uppercase bg-white pl-4 py-1">
+      <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden text-black underline hover:text-neutral-600 transition-colors cursor-pointer">EXPORT PDF</button>
     </div>
   </div>
 
