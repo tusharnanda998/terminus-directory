@@ -103,23 +103,25 @@
     <div class="flex justify-between items-center w-full relative z-20 h-full">
       <!-- Left Side: Dynamic Upload Trigger -->
       <div class="flex items-center h-full">
-        <button id="upload_widget" class="bg-white text-black border border-neutral-300 px-2 py-0.5 text-[9px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-none flex items-center">
+        <button id="upload_widget" class="bg-white text-black border border-neutral-300 px-2 h-[18px] box-border text-[9px] hover:bg-neutral-100 transition-colors uppercase cursor-pointer leading-none flex items-center justify-center">
           + UPLOAD ENTRY
         </button>
       </div>
 
       <!-- Right Side: Main Tabs + PDF Export Trigger -->
-      <div class="flex items-center space-x-4 h-full leading-none">
-        <button id="tab-all" onclick="switchMainTab('all')" class="font-bold text-black cursor-pointer leading-none">INDEX</button>
-        <button id="tab-saved" onclick="switchMainTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none">SAVED (<span id="saved-count">0</span>)</button>
-        <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden text-black underline hover:text-neutral-600 transition-colors cursor-pointer text-[9px] leading-none">EXPORT PDF</button>
+      <div class="flex items-center h-full leading-none">
+        <div class="flex items-center h-[18px] space-x-4">
+          <button id="tab-all" onclick="switchMainTab('all')" class="font-bold text-black cursor-pointer leading-none flex items-center h-full">INDEX</button>
+          <button id="tab-saved" onclick="switchMainTab('saved')" class="text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none flex items-center h-full">SAVED (<span id="saved-count">0</span>)</button>
+          <button id="export-pdf-btn" onclick="exportSavedPDF()" class="hidden text-black underline hover:text-neutral-600 transition-colors cursor-pointer text-[9px] leading-none flex items-center h-full">EXPORT PDF</button>
+        </div>
       </div>
     </div>
   </header>
 
   <!-- INDEX SUB-NAV -->
-  <div id="index-subnav" class="w-full relative z-20 mb-8 flex justify-end">
-    <div class="flex items-center space-x-2 text-[9px] tracking-widest uppercase pr-[54px]">
+  <div id="index-subnav" class="w-full sticky top-[26px] z-30 mb-8 flex justify-start">
+    <div class="flex items-center space-x-2 text-[9px] tracking-widest uppercase bg-white pr-4 py-1">
       <button id="subtab-images" onclick="toggleIndexFilter('images')" class="font-bold text-black cursor-pointer transition-colors">IMAGES</button>
       <span class="text-neutral-300">|</span>
       <button id="subtab-text" onclick="toggleIndexFilter('text')" class="font-bold text-black cursor-pointer transition-colors">TEXT</button>
@@ -247,7 +249,7 @@
         if (data.type === "link") {
           mainContent = `
             <div class="relative flex flex-col justify-center items-center text-center max-w-xl mx-auto w-full z-20 px-6">
-              <div class="bg-white px-6 py-4 relative z-20 flex flex-col items-center justify-center">
+              <div class="bg-white px-4 py-3 md:px-6 md:py-4 relative z-20 flex flex-col items-center justify-center">
                 <span class="text-[9px] uppercase tracking-widest text-neutral-400 mb-2">EXTERNAL REFERENCE</span>
                 <a href="${data.url}" target="_blank" rel="noopener noreferrer" class="text-sm md:text-base font-bold text-black hover:underline break-all mb-2">
                   ${data.url}
@@ -259,9 +261,11 @@
         } else if (data.type === "text") {
           mainContent = `
             <div class="relative flex flex-col justify-center items-center text-center max-w-2xl mx-auto w-full z-20 px-6">
-              <p class="text-base md:text-lg font-bold text-black tracking-wide uppercase whitespace-pre-line bg-white px-6 py-4 relative z-20 leading-relaxed">
-                ${data.textContent}
-              </p>
+              <div class="px-4 pt-0 pb-3 md:px-6 md:pt-0 md:pb-4 bg-white relative z-20">
+                <p class="text-base md:text-lg font-bold text-black tracking-wide uppercase whitespace-pre-line leading-none">
+                  ${data.textContent}
+                </p>
+              </div>
             </div>
           `;
         } else {
@@ -379,25 +383,30 @@
         const allBtn = document.getElementById("tab-all");
         const savedBtn = document.getElementById("tab-saved");
         const exportBtn = document.getElementById("export-pdf-btn");
-        const subNav = document.getElementById("index-subnav");
 
         if (tab === "all") {
           allBtn.className = "font-bold text-black cursor-pointer leading-none";
           savedBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none";
           exportBtn.classList.add("hidden");
-          subNav.classList.remove("hidden");
         } else {
           savedBtn.className = "font-bold text-black cursor-pointer leading-none";
           allBtn.className = "text-neutral-400 hover:text-black transition-colors cursor-pointer leading-none";
-          subNav.classList.add("hidden");
           if (savedIds.length > 0) exportBtn.classList.remove("hidden");
         }
         renderFeed();
       };
 
       window.toggleIndexFilter = function(type) {
-        if (type === 'images') filterShowImages = !filterShowImages;
-        if (type === 'text') filterShowText = !filterShowText;
+        // Compute what the new state would be without applying it yet.
+        const nextImages = (type === 'images') ? !filterShowImages : filterShowImages;
+        const nextText = (type === 'text') ? !filterShowText : filterShowText;
+
+        // At least one filter must always stay active — ignore the click
+        // if it would turn both off.
+        if (!nextImages && !nextText) return;
+
+        filterShowImages = nextImages;
+        filterShowText = nextText;
 
         const btnImages = document.getElementById("subtab-images");
         const btnText = document.getElementById("subtab-text");
