@@ -78,9 +78,13 @@
       opacity: 0.7;
     }
 
-    /* MOBILE & DESKTOP PDF / PRINT STAGING */
+    /* MOBILE & DESKTOP PDF / PRINT STAGING (Hidden offscreen to prevent leading blank pages) */
     #print-stage {
-      display: none;
+      position: fixed;
+      left: -9999px;
+      top: 0;
+      visibility: hidden;
+      z-index: -1000;
     }
   </style>
 </head>
@@ -413,12 +417,14 @@
         }
       };
 
-      // HTML2PDF DOWNLOAD ENGINE WITH EXPLICIT DYNAMIC PAGE-BREAK FIX
+      // HTML2PDF DOWNLOAD ENGINE WITH ZERO LEADING OR TRAILING BLANK PAGES
       window.exportSavedPDF = async function() {
         if (savedIds.length === 0) return;
 
         const stage = document.getElementById("print-stage");
-        stage.style.display = "block"; 
+        stage.style.visibility = "visible"; 
+        stage.style.position = "static";
+        stage.style.left = "auto";
         stage.innerHTML = ""; 
 
         const docsToRender = allDocs.filter(doc => savedIds.includes(doc.id));
@@ -447,7 +453,6 @@
             `;
           }
 
-          // Use class-based dynamic pagebreak rule to prevent html2pdf from injecting trailing empty sheets
           const pageBreakClass = (index === docsToRender.length - 1) ? "" : "html2pdf__page-break";
 
           const pageHTML = `
@@ -484,7 +489,9 @@
         };
 
         html2pdf().from(stage).set(opt).save().then(() => {
-          stage.style.display = "none";
+          stage.style.visibility = "hidden";
+          stage.style.position = "fixed";
+          stage.style.left = "-9999px";
           stage.innerHTML = "";
         });
       };
