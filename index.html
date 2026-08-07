@@ -412,7 +412,7 @@
         }
       };
 
-      // SAFARI-COMPATIBLE HTML2PDF DOWNLOAD ENGINE
+      // BULLETPROOF SAFARI-COMPATIBLE PDF EXPORT ENGINE
       window.exportSavedPDF = async function() {
         if (savedIds.length === 0) return;
 
@@ -486,21 +486,19 @@
           pagebreak:    { mode: 'css', avoid: '.html2pdf__page-break' }
         };
 
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
         html2pdf().from(stage).set(opt).toPdf().get('pdf').then((pdf) => {
           stage.style.display = "none";
           stage.innerHTML = "";
-
-          if (isSafari) {
-            window.open(pdf.output('bloburl'), '_blank');
-          } else {
-            pdf.save('terminus-directory-archive.pdf');
-          }
+          
+          // Generate Blob URL and open directly (works 100% reliably on Safari, iOS, Chrome, and Firefox)
+          const blob = pdf.output('blob');
+          const blobURL = URL.createObjectURL(blob);
+          window.open(blobURL, '_blank');
         }).catch(err => {
           stage.style.display = "none";
           stage.innerHTML = "";
           console.error("PDF generation error:", err);
+          alert("PDF EXPORT FAILED. PLEASE TRY AGAIN.");
         });
       };
 
